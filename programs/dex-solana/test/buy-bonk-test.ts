@@ -35,7 +35,7 @@ const RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
 const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
 
 // Test parameters
-const SOL_AMOUNT = 0.01; // 0.01 SOL
+const SOL_AMOUNT = 0.005; // 0.005 SOL
 
 async function main() {
     console.log('🚀 Starting OKX DEX Router BONK Swap Test');
@@ -144,18 +144,18 @@ async function main() {
     }
 
     // Add instruction to wrap SOL to wSOL
-    console.log('🔄 Adding SOL wrap instruction...');
-    const wrapSolIx = createSyncNativeInstruction(wsolTokenAccount);
-    transaction.add(wrapSolIx);
+    // console.log('🔄 Adding SOL wrap instruction...');
+    // const wrapSolIx = createSyncNativeInstruction(wsolTokenAccount);
+    // transaction.add(wrapSolIx);
 
-    // Add instruction to transfer SOL to wSOL account for wrapping
-    console.log('💰 Adding SOL transfer instruction...');
-    const transferSolIx = SystemProgram.transfer({
-        fromPubkey: wallet.publicKey,
-        toPubkey: wsolTokenAccount,
-        lamports: inputAmount,
-    });
-    transaction.add(transferSolIx);
+    // // Add instruction to transfer SOL to wSOL account for wrapping
+    // console.log('💰 Adding SOL transfer instruction...');
+    // const transferSolIx = SystemProgram.transfer({
+    //     fromPubkey: wallet.publicKey,
+    //     toPubkey: wsolTokenAccount,
+    //     lamports: inputAmount,
+    // });
+    // transaction.add(transferSolIx);
 
     // Create the swap instruction
     console.log('💱 Adding swap instruction...');
@@ -170,7 +170,7 @@ async function main() {
 
     // Add all required Raydium accounts to the instruction in the correct order
     // The order should match RaydiumSwapAccounts structure
-    const requiredAccounts = [
+    const requiredAccountsForRaydiumAmm = [
         RAYDIUM_SWAP_PROGRAM_ID, // dex_program_id
         wallet.publicKey, // swap_authority_pubkey - should be the user's wallet (owner of source token account)
         wsolTokenAccount, // swap_source_token (will be replaced by the program)
@@ -192,7 +192,7 @@ async function main() {
         poolInfo.serumVaultSigner, // serum_vault_signer
     ];
 
-    requiredAccounts.forEach((account, index) => {
+    requiredAccountsForRaydiumAmm.forEach((account, index) => {
         if (account){
             // The swap authority (user's wallet) should be a signer
             const isSigner = index === 1; // swap_authority_pubkey is at index 1
