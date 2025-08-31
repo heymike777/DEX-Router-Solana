@@ -170,10 +170,9 @@ async function main() {
 
     // Add all required Raydium accounts to the instruction in the correct order
     // The order should match RaydiumSwapAccounts structure
-    //TODO: is the order correct?????
     const requiredAccounts = [
         RAYDIUM_SWAP_PROGRAM_ID, // dex_program_id
-        poolInfo.ammAuthority, // swap_authority_pubkey
+        wallet.publicKey, // swap_authority_pubkey - should be the user's wallet (owner of source token account)
         wsolTokenAccount, // swap_source_token (will be replaced by the program)
         bonkTokenAccount, // swap_destination_token (will be replaced by the program)
         TOKEN_PROGRAM_ID, // token_program
@@ -195,9 +194,11 @@ async function main() {
 
     requiredAccounts.forEach((account, index) => {
         if (account){
+            // The swap authority (user's wallet) should be a signer
+            const isSigner = index === 1; // swap_authority_pubkey is at index 1
             swapInstruction.keys.push({
                 pubkey: account,
-                isSigner: false, // No additional signers needed - the program handles PDAs
+                isSigner: isSigner,
                 isWritable: true,
             });
         }
