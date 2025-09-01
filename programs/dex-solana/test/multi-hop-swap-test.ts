@@ -4,6 +4,7 @@ import {
   Transaction,
   sendAndConfirmTransaction,
   LAMPORTS_PER_SOL,
+  PublicKey,
 } from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
@@ -65,6 +66,16 @@ async function main() {
 
     // Get or create token accounts
     console.log('\n🔍 Setting up token accounts...');
+
+
+    //TODO: calc authority PDA for my deployed program
+    const authorityPda = new PublicKey('HV1KXxWFaSeriyFvXyx48FqG9BoFbfinB8njCJonqP7K');
+    // const [authorityPda] = PublicKey.findProgramAddressSync(
+    //     [Buffer.from("authority")],                 // или ["order", wallet, u64(orderId)] — см. свой код!
+    //     OKX_DEX_ROUTER_PROGRAM_ID
+    // );
+    const bonkAtaForAuthority = await getAssociatedTokenAddress(BONK_MINT, authorityPda, true);
+
     
     // Get wSOL token account address (wSOL mint is the same as SOL mint)
     const wsolTokenAccount = await getAssociatedTokenAddress(
@@ -176,14 +187,13 @@ async function main() {
         swapArgs
     );
 
-    // Add all required Raydium accounts for both hops
-    // For multi-hop: WSOL → BONK → WSOL, we need accounts for both directions
     const requiredAccounts = [
         // First hop: WSOL → BONK
         RAYDIUM_SWAP_PROGRAM_ID, // dex_program_id
-        wallet.publicKey, // swap_authority_pubkey - should be the user's wallet
+        authorityPda, // for multi-hop we need to use authority PDA and not user's wallet
+        // wallet.publicKey, // swap_authority_pubkey - should be the user's wallet
         wsolTokenAccount, // swap_source_token (WSOL)
-        bonkTokenAccount, // swap_destination_token (BONK)
+        bonkAtaForAuthority, // swap_destination_token (BONK)
         TOKEN_PROGRAM_ID, // token_program
         poolInfo.ammId, // amm_id
         poolInfo.ammAuthority, // amm_authority
@@ -202,8 +212,9 @@ async function main() {
         
         // Second hop: BONK → WSOL (same pool, reverse direction)
         RAYDIUM_SWAP_PROGRAM_ID, // dex_program_id
-        wallet.publicKey, // swap_authority_pubkey - should be the user's wallet
-        bonkTokenAccount, // swap_source_token (BONK)
+        authorityPda, // for multi-hop we need to use authority PDA and not user's wallet
+        // wallet.publicKey, // swap_authority_pubkey - should be the user's wallet
+        bonkAtaForAuthority, // swap_source_token (BONK)
         wsolTokenAccount, // swap_destination_token (WSOL)
         TOKEN_PROGRAM_ID, // token_program
         poolInfo.ammId, // amm_id
@@ -224,8 +235,8 @@ async function main() {
 
     requiredAccounts.forEach((account, index) => {
         if (account){
-            // The swap authority (user's wallet) should be a signer for both hops
-            const isSigner = index === 1 || index === 20; // swap_authority_pubkey is at index 1 and 20
+            // The swap authority (user's wallet for first hop, program PDA for second hop) should be a signer
+            const isSigner = account.toBase58() === wallet.publicKey.toBase58(); // index === 1 || index === 20; // swap_authority_pubkey positions
             swapInstruction.keys.push({
                 pubkey: account,
                 isSigner: isSigner,

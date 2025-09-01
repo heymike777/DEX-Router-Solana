@@ -158,6 +158,5 @@ export function createMultiHopRaydiumSwapRoute(): Route[][] {
   return [[
     { dexes: [Dex.RaydiumSwap], weights: [100] },
     { dexes: [Dex.RaydiumSwap], weights: [100] },
-    // { dexes: [Dex.MeteoraDAMMV2], weights: [100] }
   ]];
 }
