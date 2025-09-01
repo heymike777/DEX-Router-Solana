@@ -155,16 +155,9 @@ export function createRaydiumSwapRoute(): Route[][] {
  * Create a multi-hop swap route for Raydium: WSOL → BONK → WSOL
  */
 export function createMultiHopRaydiumSwapRoute(): Route[][] {
-  return [
-    // First hop: WSOL → BONK
-    [{
-      dexes: [Dex.RaydiumSwap],
-      weights: [100] // 100% weight for Raydium
-    }],
-    // Second hop: BONK → WSOL
-    [{
-      dexes: [Dex.RaydiumSwap],
-      weights: [100] // 100% weight for Raydium
-    }]
-  ];
+  return [[
+    { dexes: [Dex.RaydiumSwap], weights: [100] },
+    { dexes: [Dex.RaydiumSwap], weights: [100] },
+    // { dexes: [Dex.MeteoraDAMMV2], weights: [100] }
+  ]];
 }

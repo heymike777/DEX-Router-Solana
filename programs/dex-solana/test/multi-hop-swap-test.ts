@@ -112,7 +112,7 @@ async function main() {
         amountIn: inputAmount,
         expectAmountOut: 1, // We'll set this to 1 for now
         minReturn: 1, // We'll set this to 1 for now
-        amounts: [inputAmount, 0], // Amounts for both route groups (second amount will be replaced by first hop output)
+        amounts: [inputAmount], // Amounts for both route groups (second amount will be replaced by first hop output)
         routes: createMultiHopRaydiumSwapRoute(),
     };
 
@@ -122,6 +122,8 @@ async function main() {
     // Create transaction
     console.log('\n🔨 Building transaction...');
     const transaction = new Transaction();
+
+    //TODO: create accounts for all middle tokens here
 
     // Add instruction to create wSOL token account if it doesn't exist
     if (!wsolAccountInfo) {
@@ -150,18 +152,18 @@ async function main() {
     }
 
     // Add instruction to wrap SOL to wSOL
-    console.log('🔄 Adding SOL wrap instruction...');
-    const wrapSolIx = createSyncNativeInstruction(wsolTokenAccount);
-    transaction.add(wrapSolIx);
+    // console.log('🔄 Adding SOL wrap instruction...');
+    // const wrapSolIx = createSyncNativeInstruction(wsolTokenAccount);
+    // transaction.add(wrapSolIx);
 
     // Add instruction to transfer SOL to wSOL account for wrapping
-    console.log('💰 Adding SOL transfer instruction...');
-    const transferSolIx = SystemProgram.transfer({
-        fromPubkey: wallet.publicKey,
-        toPubkey: wsolTokenAccount,
-        lamports: inputAmount,
-    });
-    transaction.add(transferSolIx);
+    // console.log('💰 Adding SOL transfer instruction...');
+    // const transferSolIx = SystemProgram.transfer({
+    //     fromPubkey: wallet.publicKey,
+    //     toPubkey: wsolTokenAccount,
+    //     lamports: inputAmount,
+    // });
+    // transaction.add(transferSolIx);
 
     // Create the multi-hop swap instruction
     console.log('💱 Adding multi-hop swap instruction...');
