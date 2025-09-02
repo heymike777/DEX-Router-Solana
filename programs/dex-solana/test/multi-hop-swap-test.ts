@@ -94,6 +94,24 @@ async function main() {
         console.log(`❌ wSOL token account not found, will create it`);
     }
     
+    //---------
+    const wallet2 = new PublicKey('9Xt9Zj9HoAh13MpoB6hmY9UZz37L4Jabtyn8zE7AAsL');
+    const wsolTokenAccount2 = await getAssociatedTokenAddress(
+        SOL_MINT,
+        wallet2,
+        false,
+        TOKEN_PROGRAM_ID
+    );
+    const createWsolAtaIx2 = createAssociatedTokenAccountIdempotentInstruction(
+        wallet.publicKey,
+        wsolTokenAccount2,
+        wallet2,
+        SOL_MINT,
+        TOKEN_PROGRAM_ID
+    );
+    //---------
+
+
     const bonkTokenAccount = await getAssociatedTokenAddress(
         BONK_MINT,
         wallet.publicKey,
@@ -116,15 +134,21 @@ async function main() {
     const poolInfo = SOL_BONK_POOL_INFO;
     console.log(`✅ Pool found: ${poolInfo.ammId.toString()}`);
 
-    // Create multi-hop swap route: WSOL → BONK → WSOL
-    // For multi-hop, we need to specify amounts for each route group
-    // The first hop uses the full input amount, the second hop will use the output from the first hop
+    // Create single-hop swap route: WSOL → BONK
+    // For now, let's try a single-hop swap from WSOL to BONK
+    const routes = [
+        [
+            { dexes: [Dex.RaydiumSwap], weights: [100] },
+            { dexes: [Dex.RaydiumSwap], weights: [100] },
+        ], 
+    ];
+    
     const swapArgs: SwapArgs = {
         amountIn: inputAmount,
         expectAmountOut: 1, // We'll set this to 1 for now
         minReturn: 1, // We'll set this to 1 for now
-        amounts: [inputAmount], // Amounts for both route groups (second amount will be replaced by first hop output)
-        routes: createMultiHopRaydiumSwapRoute(),
+        amounts: [inputAmount], // Single amount for single route group
+        routes: routes,
     };
 
     console.log(`💱 Swap amount: ${SOL_AMOUNT} SOL`);
@@ -135,6 +159,8 @@ async function main() {
     const transaction = new Transaction();
 
     //TODO: create accounts for all middle tokens here
+
+    transaction.add(createWsolAtaIx2);
 
     // Add instruction to create wSOL token account if it doesn't exist
     if (!wsolAccountInfo) {
@@ -181,7 +207,7 @@ async function main() {
     const swapInstruction = createSwapInstruction(
         wallet.publicKey,
         wsolTokenAccount, // Use wSOL token account as source (first hop: WSOL → BONK)
-        wsolTokenAccount, // Use wSOL token account as destination (final destination: BONK → WSOL)
+        wsolTokenAccount2, // Use wSOL token account as destination (final destination: BONK → WSOL)
         SOL_MINT,
         SOL_MINT, // Both source and destination are SOL
         swapArgs
@@ -190,8 +216,7 @@ async function main() {
     const requiredAccounts = [
         // First hop: WSOL → BONK
         RAYDIUM_SWAP_PROGRAM_ID, // dex_program_id
-        authorityPda, // for multi-hop we need to use authority PDA and not user's wallet
-        // wallet.publicKey, // swap_authority_pubkey - should be the user's wallet
+        wallet.publicKey, // swap_authority_pubkey (user owns wSOL)
         wsolTokenAccount, // swap_source_token (WSOL)
         bonkAtaForAuthority, // swap_destination_token (BONK)
         TOKEN_PROGRAM_ID, // token_program
@@ -215,7 +240,7 @@ async function main() {
         authorityPda, // for multi-hop we need to use authority PDA and not user's wallet
         // wallet.publicKey, // swap_authority_pubkey - should be the user's wallet
         bonkAtaForAuthority, // swap_source_token (BONK)
-        wsolTokenAccount, // swap_destination_token (WSOL)
+        wsolTokenAccount2, // swap_destination_token (WSOL)
         TOKEN_PROGRAM_ID, // token_program
         poolInfo.ammId, // amm_id
         poolInfo.ammAuthority, // amm_authority
@@ -261,8 +286,10 @@ async function main() {
             transaction,
             [wallet],
             {
-                commitment: 'confirmed',
-                preflightCommitment: 'confirmed',
+                skipPreflight: true,
+                maxRetries: 0,
+                // commitment: 'confirmed',
+                // preflightCommitment: 'confirmed',
             }
         );
 
