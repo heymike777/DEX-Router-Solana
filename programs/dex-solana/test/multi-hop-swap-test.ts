@@ -12,6 +12,7 @@ import {
   TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
+  createCloseAccountInstruction,
 } from '@solana/spl-token';
 import { SystemProgram } from '@solana/web3.js';
 import * as dotenv from 'dotenv';
@@ -35,6 +36,7 @@ dotenv.config();
 // Configuration
 const RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
 const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
+const INTERMEDIARY_PRIVATE_KEY = process.env.INTERMEDIARY_PRIVATE_KEY || '';
 
 // Test parameters
 const SOL_AMOUNT = 0.005; // 0.005 SOL
@@ -53,8 +55,16 @@ async function main() {
         throw new Error('Please set PRIVATE_KEY in your .env file');
     }
 
+    // Load wallet
+    if (!INTERMEDIARY_PRIVATE_KEY) {
+        throw new Error('Please set INTERMEDIARY_PRIVATE_KEY in your .env file');
+    }
+
     const wallet = Keypair.fromSecretKey(Buffer.from(JSON.parse(PRIVATE_KEY)));
     console.log(`👛 Wallet: ${wallet.publicKey.toString()}`);
+
+    const intermediaryWallet = Keypair.fromSecretKey(Buffer.from(JSON.parse(INTERMEDIARY_PRIVATE_KEY)));
+    console.log(`👛 Intermediary Wallet: ${intermediaryWallet.publicKey.toString()}`);
 
     // Check wallet balance
     const balance = await connection.getBalance(wallet.publicKey);
@@ -95,38 +105,20 @@ async function main() {
     }
     
     //---------
-    const wallet2 = new PublicKey('9Xt9Zj9HoAh13MpoB6hmY9UZz37L4Jabtyn8zE7AAsL');
-    const wsolTokenAccount2 = await getAssociatedTokenAddress(
+    const wsolTokenAccountForIntermediaryWallet = await getAssociatedTokenAddress(
         SOL_MINT,
-        wallet2,
+        intermediaryWallet.publicKey,
         false,
         TOKEN_PROGRAM_ID
     );
     const createWsolAtaIx2 = createAssociatedTokenAccountIdempotentInstruction(
         wallet.publicKey,
-        wsolTokenAccount2,
-        wallet2,
+        wsolTokenAccountForIntermediaryWallet,
+        intermediaryWallet.publicKey,
         SOL_MINT,
         TOKEN_PROGRAM_ID
     );
     //---------
-
-
-    const bonkTokenAccount = await getAssociatedTokenAddress(
-        BONK_MINT,
-        wallet.publicKey,
-        false,
-        TOKEN_PROGRAM_ID
-    );
-
-    // Check if BONK token account exists
-    let bonkAccountInfo;
-    try {
-        bonkAccountInfo = await getAccount(connection, bonkTokenAccount);
-        console.log(`✅ BONK token account exists: ${bonkTokenAccount.toString()}`);
-    } catch (error) {
-        console.log(`❌ BONK token account not found, will create it`);
-    }
 
     // Fetch Raydium pool information
     console.log('\n🏊 Fetching Raydium pool information...');
@@ -176,17 +168,17 @@ async function main() {
     }
 
     // Add instruction to create BONK token account if it doesn't exist
-    if (!bonkAccountInfo) {
-        console.log('➕ Adding create BONK token account instruction...');
-        const createBonkAtaIx = createAssociatedTokenAccountIdempotentInstruction(
-            wallet.publicKey,
-            bonkTokenAccount,
-            wallet.publicKey,
-            BONK_MINT,
-            TOKEN_PROGRAM_ID
-        );
-        transaction.add(createBonkAtaIx);
-    }
+    // if (!bonkAccountInfo) {
+    //     console.log('➕ Adding create BONK token account instruction...');
+    //     const createBonkAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+    //         wallet.publicKey,
+    //         bonkTokenAccount,
+    //         wallet.publicKey,
+    //         BONK_MINT,
+    //         TOKEN_PROGRAM_ID
+    //     );
+    //     transaction.add(createBonkAtaIx);
+    // }
 
     // Add instruction to wrap SOL to wSOL
     // console.log('🔄 Adding SOL wrap instruction...');
@@ -207,7 +199,7 @@ async function main() {
     const swapInstruction = createSwapInstruction(
         wallet.publicKey,
         wsolTokenAccount, // Use wSOL token account as source (first hop: WSOL → BONK)
-        wsolTokenAccount2, // Use wSOL token account as destination (final destination: BONK → WSOL)
+        wsolTokenAccountForIntermediaryWallet, // Use wSOL token account as destination (final destination: BONK → WSOL)
         SOL_MINT,
         SOL_MINT, // Both source and destination are SOL
         swapArgs
@@ -240,7 +232,7 @@ async function main() {
         authorityPda, // for multi-hop we need to use authority PDA and not user's wallet
         // wallet.publicKey, // swap_authority_pubkey - should be the user's wallet
         bonkAtaForAuthority, // swap_source_token (BONK)
-        wsolTokenAccount2, // swap_destination_token (WSOL)
+        wsolTokenAccountForIntermediaryWallet, // swap_destination_token (WSOL)
         TOKEN_PROGRAM_ID, // token_program
         poolInfo.ammId, // amm_id
         poolInfo.ammAuthority, // amm_authority
@@ -261,7 +253,7 @@ async function main() {
     requiredAccounts.forEach((account, index) => {
         if (account){
             // The swap authority (user's wallet for first hop, program PDA for second hop) should be a signer
-            const isSigner = account.toBase58() === wallet.publicKey.toBase58(); // index === 1 || index === 20; // swap_authority_pubkey positions
+            const isSigner = account.toBase58() === wallet.publicKey.toBase58() || account.toBase58() === intermediaryWallet.publicKey.toBase58(); // index === 1 || index === 20; // swap_authority_pubkey positions
             swapInstruction.keys.push({
                 pubkey: account,
                 isSigner: isSigner,
@@ -271,6 +263,14 @@ async function main() {
     });
 
     transaction.add(swapInstruction);
+
+    // instruction to close wsolTokenAccount2
+    const closeWsolAtaIxForIntermediaryWallet = createCloseAccountInstruction(
+        wsolTokenAccountForIntermediaryWallet,
+        wallet.publicKey,
+        intermediaryWallet.publicKey
+    );
+    transaction.add(closeWsolAtaIxForIntermediaryWallet);
 
     // Get recent blockhash
     console.log('📡 Getting recent blockhash...');
@@ -284,7 +284,7 @@ async function main() {
         const signature = await sendAndConfirmTransaction(
             connection,
             transaction,
-            [wallet],
+            [wallet, intermediaryWallet],
             {
                 skipPreflight: true,
                 maxRetries: 0,
@@ -307,13 +307,6 @@ async function main() {
             console.log(`🔄 wSOL: ${finalWsolAccount.amount.toLocaleString()}`);
         } catch (error) {
             console.log(`🔄 wSOL: Account not found`);
-        }
-
-        try {
-            const finalBonkAccount = await getAccount(connection, bonkTokenAccount);
-            console.log(`🐕 BONK: ${finalBonkAccount.amount.toLocaleString()}`);
-        } catch (error) {
-            console.log(`🐕 BONK: Account not found`);
         }
 
     } catch (error) {
