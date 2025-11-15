@@ -54,6 +54,13 @@ pub struct CommissionProxySwapAccountsV3<'info> {
     pub destination_token_program: Option<Interface<'info, TokenInterface>>,
     pub associated_token_program: Option<Program<'info, AssociatedToken>>,
     pub system_program: Option<Program<'info, System>>,
+
+    // Optional: payer's WSOL and USDC token accounts for profitability check
+    // If provided, they must belong to the payer; otherwise treated as zero balances
+    #[account(mut)]
+    pub payer_wsol_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(mut)]
+    pub payer_usdc_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
 pub fn swap_tob_handler<'a>(
@@ -80,6 +87,13 @@ pub fn swap_tob_handler<'a>(
     } else {
         None
     };
+    // Snapshot before balances (SOL/WSOL/USDC)
+    let before_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
+
     common_swap_v3(
         &SwapToBProcessor,
         &ctx.accounts.payer,
@@ -108,6 +122,17 @@ pub fn swap_tob_handler<'a>(
         None,
         acc_close_flag,
     )?;
+
+    // Snapshot after balances and enforce profitability
+    let after_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
+    let profit_lamports =
+        crate::utils::compute_profit_lamports(&before_snapshot, &after_snapshot);
+    require!(profit_lamports >= 0, ErrorCode::UnprofitableTransaction);
+
     Ok(())
 }
 
@@ -121,6 +146,13 @@ pub fn swap_toc_handler<'a>(
     let commission_direction = commission_info >> 31 == 1;
     let commission_rate = commission_info & ((1 << 30) - 1);
     log_rate_info_v3(commission_rate, platform_fee_rate, None, commission_direction, false);
+
+    // Snapshot before balances (SOL/WSOL/USDC)
+    let before_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
 
     common_swap_v3(
         &SwapToCProcessor,
@@ -150,6 +182,17 @@ pub fn swap_toc_handler<'a>(
         None,
         false,
     )?;
+
+    // Snapshot after balances and enforce profitability
+    let after_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
+    let profit_lamports =
+        crate::utils::compute_profit_lamports(&before_snapshot, &after_snapshot);
+    require!(profit_lamports >= 0, ErrorCode::UnprofitableTransaction);
+
     Ok(())
 }
 
@@ -203,6 +246,13 @@ pub struct CommissionProxySwapAccountsV3WithReceiver<'info> {
     /// - Some: SOL receiver when converting wSOL -> SOL
     #[account(mut)]
     pub sol_receiver: Option<AccountInfo<'info>>,
+
+    // Optional: payer's WSOL and USDC token accounts for profitability check
+    // If provided, they must belong to the payer; otherwise treated as zero balances
+    #[account(mut)]
+    pub payer_wsol_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(mut)]
+    pub payer_usdc_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
 /// Validate sol_receiver based on acc_close_flag
@@ -273,6 +323,13 @@ pub fn swap_tob_specified_receiver_handler<'a>(
         None
     };
 
+    // Snapshot before balances (SOL/WSOL/USDC)
+    let before_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
+
     // Execute swap and get actual amount out
     let actual_amount_out = common_swap_v3(
         &SwapToBProcessor,
@@ -317,6 +374,16 @@ pub fn swap_tob_specified_receiver_handler<'a>(
         }
     }
 
+    // Snapshot after balances and enforce profitability
+    let after_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
+    let profit_lamports =
+        crate::utils::compute_profit_lamports(&before_snapshot, &after_snapshot);
+    require!(profit_lamports >= 0, ErrorCode::UnprofitableTransaction);
+
     Ok(())
 }
 
@@ -344,6 +411,13 @@ pub fn swap_tob_enhanced_handler<'a>(
 
     let trim_account = &ctx.remaining_accounts[ctx.remaining_accounts.len() - 2];
     let charge_account = &ctx.remaining_accounts[ctx.remaining_accounts.len() - 1];
+
+    // Snapshot before balances (SOL/WSOL/USDC)
+    let before_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
 
     common_swap_v3(
         &SwapToBProcessor,
@@ -373,5 +447,16 @@ pub fn swap_tob_enhanced_handler<'a>(
         Some(charge_account),
         acc_close_flag,
     )?;
+
+    // Snapshot after balances and enforce profitability
+    let after_snapshot = crate::utils::snapshot_wallet_balances(
+        &ctx.accounts.payer,
+        &mut ctx.accounts.payer_wsol_token_account,
+        &mut ctx.accounts.payer_usdc_token_account,
+    );
+    let profit_lamports =
+        crate::utils::compute_profit_lamports(&before_snapshot, &after_snapshot);
+    require!(profit_lamports >= 0, ErrorCode::UnprofitableTransaction);
+
     Ok(())
 }

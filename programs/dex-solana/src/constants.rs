@@ -173,6 +173,13 @@ pub mod wsol_program {
     declare_id!("So11111111111111111111111111111111111111112");
 }
 
+// Common stablecoin mints
+pub mod usdc_mint {
+    use anchor_lang::declare_id;
+    // Mainnet USDC
+    declare_id!("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+}
+
 //system program address, backend uses this address to represent native sol
 pub mod system_program {
     use anchor_lang::declare_id;

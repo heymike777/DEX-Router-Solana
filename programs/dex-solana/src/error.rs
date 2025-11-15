@@ -226,6 +226,9 @@ pub enum ErrorCode {
 
     #[msg("Invalid trim amount")]
     InvalidTrimAmount,
+
+    #[msg("Transaction is not profitable")]
+    UnprofitableTransaction,
 }
 
 #[error_code]
