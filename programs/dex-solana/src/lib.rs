@@ -103,132 +103,138 @@ pub mod dex_solana {
     }
 
     // ******************** Platform Fee Swap ******************** //
-    pub fn platform_fee_sol_proxy_swap_v2<'a>(
-        ctx: Context<'_, '_, 'a, 'a, CommissionSOLProxySwapAccounts<'a>>,
-        args: SwapArgs,
-        commission_info: u32,
-        platform_fee_rate: u32,
-        trim_rate: u8,
-        order_id: u64,
-    ) -> Result<()> {
-        instructions::platform_fee_sol_proxy_swap_handler_v2(
-            ctx,
-            args,
-            commission_info,
-            order_id,
-            platform_fee_rate,
-            trim_rate,
-        )
-    }
+    // ========== DISABLED - Platform Fee V2 (commission + platform fee + trim) ==========
+    // Uncomment these when you need platform fee functionality
+    // pub fn platform_fee_sol_proxy_swap_v2<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, CommissionSOLProxySwapAccounts<'a>>,
+    //     args: SwapArgs,
+    //     commission_info: u32,
+    //     platform_fee_rate: u32,
+    //     trim_rate: u8,
+    //     order_id: u64,
+    // ) -> Result<()> {
+    //     instructions::platform_fee_sol_proxy_swap_handler_v2(
+    //         ctx,
+    //         args,
+    //         commission_info,
+    //         order_id,
+    //         platform_fee_rate,
+    //         trim_rate,
+    //     )
+    // }
 
-    pub fn platform_fee_spl_proxy_swap_v2<'a>(
-        ctx: Context<'_, '_, 'a, 'a, CommissionSPLProxySwapAccounts<'a>>,
-        args: SwapArgs,
-        commission_info: u32,
-        platform_fee_rate: u32,
-        trim_rate: u8,
-        order_id: u64,
-    ) -> Result<()> {
-        instructions::platform_fee_spl_proxy_swap_handler_v2(
-            ctx,
-            args,
-            commission_info,
-            order_id,
-            platform_fee_rate,
-            trim_rate,
-        )
-    }
+    // pub fn platform_fee_spl_proxy_swap_v2<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, CommissionSPLProxySwapAccounts<'a>>,
+    //     args: SwapArgs,
+    //     commission_info: u32,
+    //     platform_fee_rate: u32,
+    //     trim_rate: u8,
+    //     order_id: u64,
+    // ) -> Result<()> {
+    //     instructions::platform_fee_spl_proxy_swap_handler_v2(
+    //         ctx,
+    //         args,
+    //         commission_info,
+    //         order_id,
+    //         platform_fee_rate,
+    //         trim_rate,
+    //     )
+    // }
 
-    pub fn platform_fee_sol_wrap_unwrap_v2<'a>(
-        ctx: Context<'_, '_, 'a, 'a, PlatformFeeWrapUnwrapAccountsV2<'a>>,
-        args: PlatformFeeWrapUnwrapArgsV2,
-        order_id: u64,
-    ) -> Result<()> {
-        instructions::platform_fee_wrap_unwrap_handler_v2(ctx, args, order_id)
-    }
+    // pub fn platform_fee_sol_wrap_unwrap_v2<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, PlatformFeeWrapUnwrapAccountsV2<'a>>,
+    //     args: PlatformFeeWrapUnwrapArgsV2,
+    //     order_id: u64,
+    // ) -> Result<()> {
+    //     instructions::platform_fee_wrap_unwrap_handler_v2(ctx, args, order_id)
+    // }
+    // ========== END DISABLED ==========
 
     // ******************** Swap V3 ******************** //
-    pub fn swap_v3<'a>(
-        ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3<'a>>,
-        args: SwapArgs,
-        commission_info: u32,
-        platform_fee_rate: u16,
-        order_id: u64,
-    ) -> Result<()> {
-        instructions::swap_toc_handler(
-            ctx,
-            args,
-            commission_info,
-            order_id,
-            Some(platform_fee_rate),
-        )
-    }
+    // ========== DISABLED - Commented out to reduce program size ==========
+    // Uncomment these when you need to add them back
+    // pub fn swap_v3<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3<'a>>,
+    //     args: SwapArgs,
+    //     commission_info: u32,
+    //     platform_fee_rate: u16,
+    //     order_id: u64,
+    // ) -> Result<()> {
+    //     instructions::swap_toc_handler(
+    //         ctx,
+    //         args,
+    //         commission_info,
+    //         order_id,
+    //         Some(platform_fee_rate),
+    //     )
+    // }
 
-    pub fn swap_tob_v3<'a>(
-        ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3<'a>>,
-        args: SwapArgs,
-        commission_info: u32,
-        trim_rate: u8,
-        platform_fee_rate: u16,
-        order_id: u64,
-    ) -> Result<()> {
-        instructions::swap_tob_handler(
-            ctx,
-            args,
-            commission_info,
-            order_id,
-            Some(trim_rate),
-            Some(platform_fee_rate),
-        )
-    }
+    // pub fn swap_tob_v3<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3<'a>>,
+    //     args: SwapArgs,
+    //     commission_info: u32,
+    //     trim_rate: u8,
+    //     platform_fee_rate: u16,
+    //     order_id: u64,
+    // ) -> Result<()> {
+    //     instructions::swap_tob_handler(
+    //         ctx,
+    //         args,
+    //         commission_info,
+    //         order_id,
+    //         Some(trim_rate),
+    //         Some(platform_fee_rate),
+    //     )
+    // }
 
-    /// Swap ToB with optional specified receiver
-    /// - For normal token swaps: sol_receiver should be None
-    /// - For swap to SOL with custom receiver: sol_receiver should be Some and acc_close_flag must be true
-    pub fn swap_tob_v3_with_receiver<'a>(
-        ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3WithReceiver<'a>>,
-        args: SwapArgs,
-        commission_info: u32,
-        trim_rate: u8,
-        platform_fee_rate: u16,
-        order_id: u64,
-    ) -> Result<()> {
-        instructions::swap_tob_specified_receiver_handler(
-            ctx,
-            args,
-            commission_info,
-            order_id,
-            Some(trim_rate),
-            Some(platform_fee_rate),
-        )
-    }
+    // /// Swap ToB with optional specified receiver
+    // /// - For normal token swaps: sol_receiver should be None
+    // /// - For swap to SOL with custom receiver: sol_receiver should be Some and acc_close_flag must be true
+    // pub fn swap_tob_v3_with_receiver<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3WithReceiver<'a>>,
+    //     args: SwapArgs,
+    //     commission_info: u32,
+    //     trim_rate: u8,
+    //     platform_fee_rate: u16,
+    //     order_id: u64,
+    // ) -> Result<()> {
+    //     instructions::swap_tob_specified_receiver_handler(
+    //         ctx,
+    //         args,
+    //         commission_info,
+    //         order_id,
+    //         Some(trim_rate),
+    //         Some(platform_fee_rate),
+    //     )
+    // }
 
-    pub fn swap_tob_v3_enhanced<'a>(
-        ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3<'a>>,
-        args: SwapArgs,
-        commission_info: u32,
-        trim_rate: u8,
-        charge_rate: u16,
-        platform_fee_rate: u16,
-        order_id: u64,
-    ) -> Result<()> {
-        instructions::swap_tob_enhanced_handler(
-            ctx,
-            args,
-            commission_info,
-            order_id,
-            trim_rate,
-            charge_rate,
-            Some(platform_fee_rate),
-        )
-    }
+    // pub fn swap_tob_v3_enhanced<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, CommissionProxySwapAccountsV3<'a>>,
+    //     args: SwapArgs,
+    //     commission_info: u32,
+    //     trim_rate: u8,
+    //     charge_rate: u16,
+    //     platform_fee_rate: u16,
+    //     order_id: u64,
+    // ) -> Result<()> {
+    //     instructions::swap_tob_enhanced_handler(
+    //         ctx,
+    //         args,
+    //         commission_info,
+    //         order_id,
+    //         trim_rate,
+    //         charge_rate,
+    //         Some(platform_fee_rate),
+    //     )
+    // }
 
-    pub fn wrap_unwrap_v3<'a>(
-        ctx: Context<'_, '_, 'a, 'a, PlatformFeeWrapUnwrapAccounts<'a>>,
-        args: PlatformFeeWrapUnwrapArgs,
-    ) -> Result<()> {
-        instructions::platform_fee_wrap_unwrap_handler_v3(ctx, args)
-    }
+    // pub fn wrap_unwrap_v3<'a>(
+    //     ctx: Context<'_, '_, 'a, 'a, PlatformFeeWrapUnwrapAccounts<'a>>,
+    //     args: PlatformFeeWrapUnwrapArgs,
+    // ) -> Result<()> {
+    //     instructions::platform_fee_wrap_unwrap_handler_v3(ctx, args)
+    // }
+    // ========== END DISABLED ==========
 
     pub fn create_token_account<'a>(
         ctx: Context<'_, '_, 'a, 'a, CreateTokenAccountAccounts<'a>>,

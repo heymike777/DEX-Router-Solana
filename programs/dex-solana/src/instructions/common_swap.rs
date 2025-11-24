@@ -294,6 +294,9 @@ pub fn common_swap<'info, T: CommonSwapProcessor<'info>>(
     Ok(destination_token_change)
 }
 
+// ========== DISABLED - V3 only, used by swap_v3 (disabled) ==========
+// Uncomment this entire function when you need to add swap_v3 back
+/*
 pub fn common_swap_v3<'info, T: PlatformFeeV3Processor<'info>>(
     swap_processor: &T,
     payer: &AccountInfo<'info>,
@@ -458,6 +461,8 @@ pub fn common_swap_v3<'info, T: PlatformFeeV3Processor<'info>>(
     require!(destination_token_change >= min_return, ErrorCode::MinReturnNotReached);
     Ok(destination_token_change)
 }
+*/
+// ========== END DISABLED ==========
 
 fn execute_swap<'info>(
     source_account: &mut InterfaceAccount<'info, TokenAccount>,
