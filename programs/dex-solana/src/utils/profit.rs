@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{InterfaceAccount, TokenAccount};
+use anchor_spl::token_interface::TokenAccount;
 
 /// Snapshot of payer's relevant balances
 pub struct WalletSnapshot {
