@@ -9,110 +9,113 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Copy, Clone, PartialEq, Eq, Debug, strum::Display)]
 pub enum Dex {
-    SplTokenSwap,
-    StableSwap,
-    Whirlpool,
-    MeteoraDynamicpool,
-    RaydiumSwap,
-    RaydiumStableSwap,
-    RaydiumClmmSwap,
-    AldrinExchangeV1,
-    AldrinExchangeV2,
-    LifinityV1,
-    LifinityV2,
-    RaydiumClmmSwapV2,
-    FluxBeam,
-    MeteoraDlmm,
-    RaydiumCpmmSwap,
-    OpenBookV2,
-    WhirlpoolV2,
-    Phoenix,
-    ObricV2,
-    SanctumAddLiq,
-    SanctumRemoveLiq,
-    SanctumNonWsolSwap,
-    SanctumWsolSwap,
-    PumpfunBuy,
-    PumpfunSell,
-    StabbleSwap,
-    SanctumRouter,
-    MeteoraVaultDeposit,
-    MeteoraVaultWithdraw,
-    Saros,
-    MeteoraLst,
-    Solfi,
-    QualiaSwap,
-    Zerofi,
+    // ========== DISABLED DEXes - Commented out to reduce program size ==========
+    // Uncomment these when you need to add them back
+    // SplTokenSwap,
+    // StableSwap,
+    // Whirlpool,
+    MeteoraDynamicpool, // Meteora DAMM V1
+    RaydiumSwap,        // Raydium AMM
+    // RaydiumStableSwap,
+    RaydiumClmmSwap,    // Raydium CLMM
+    // AldrinExchangeV1,
+    // AldrinExchangeV2,
+    // LifinityV1,
+    // LifinityV2,
+    RaydiumClmmSwapV2,  // Raydium CLMM V2
+    // FluxBeam,
+    MeteoraDlmm,        // Meteora DLMM
+    RaydiumCpmmSwap,    // Raydium CPMM
+    // OpenBookV2,
+    // WhirlpoolV2,
+    // Phoenix,
+    // ObricV2,
+    // SanctumAddLiq,
+    // SanctumRemoveLiq,
+    // SanctumNonWsolSwap,
+    // SanctumWsolSwap,
+    // PumpfunBuy,
+    // PumpfunSell,
+    // StabbleSwap,
+    // SanctumRouter,
+    // MeteoraVaultDeposit,
+    // MeteoraVaultWithdraw,
+    // Saros,
+    // MeteoraLst,
+    // Solfi,
+    // QualiaSwap,
+    // Zerofi,
     PumpfunammBuy,
     PumpfunammSell,
-    Virtuals,
-    VertigoBuy,
-    VertigoSell,
-    PerpetualsAddLiq,
-    PerpetualsRemoveLiq,
-    PerpetualsSwap,
-    RaydiumLaunchpad,
-    LetsBonkFun,
-    Woofi,
-    MeteoraDbc,
-    MeteoraDlmmSwap2,
-    MeteoraDAMMV2,
-    Gavel,
-    BoopfunBuy,
-    BoopfunSell,
-    MeteoraDbc2,
-    GooseFX,
-    Dooar,
-    Numeraire,
-    SaberDecimalWrapperDeposit,
-    SaberDecimalWrapperWithdraw,
-    SarosDlmm,
-    OneDexSwap,
-    Manifest,
-    ByrealClmm,
-    PancakeSwapV3Swap,
-    PancakeSwapV3SwapV2,
-    Tessera,
-    #[strum(to_string = "SolRfq")]
-    SolRfq {
-        rfq_id: u64,
-        expected_maker_amount: u64,
-        expected_taker_amount: u64,
-        maker_send_amount: u64,
-        taker_send_amount: u64,
-        expiry: u64,
-        maker_use_native_sol: bool,
-        taker_use_native_sol: bool,
-    },
-    PumpfunBuy2,
+    // Virtuals,
+    // VertigoBuy,
+    // VertigoSell,
+    // PerpetualsAddLiq,
+    // PerpetualsRemoveLiq,
+    // PerpetualsSwap,
+    // RaydiumLaunchpad,
+    // LetsBonkFun,
+    // Woofi,
+    // MeteoraDbc,
+    MeteoraDlmmSwap2,   // Meteora DLMM Swap2
+    MeteoraDAMMV2,      // Meteora DAMM V2
+    // Gavel,
+    // BoopfunBuy,
+    // BoopfunSell,
+    // MeteoraDbc2,
+    // GooseFX,
+    // Dooar,
+    // Numeraire,
+    // SaberDecimalWrapperDeposit,
+    // SaberDecimalWrapperWithdraw,
+    // SarosDlmm,
+    // OneDexSwap,
+    // Manifest,
+    // ByrealClmm,
+    // PancakeSwapV3Swap,
+    // PancakeSwapV3SwapV2,
+    // Tessera,
+    // #[strum(to_string = "SolRfq")]
+    // SolRfq {
+    //     rfq_id: u64,
+    //     expected_maker_amount: u64,
+    //     expected_taker_amount: u64,
+    //     maker_send_amount: u64,
+    //     taker_send_amount: u64,
+    //     expiry: u64,
+    //     maker_use_native_sol: bool,
+    //     taker_use_native_sol: bool,
+    // },
+    // PumpfunBuy2,
     PumpfunammBuy2,
-    Humidifi,
-    HeavenBuy,
-    HeavenSell,
-    SolfiV2,
-    PumpfunBuy3,
-    PumpfunSell3,
+    // Humidifi,
+    // HeavenBuy,
+    // HeavenSell,
+    // SolfiV2,
+    // PumpfunBuy3,
+    // PumpfunSell3,
     PumpfunammBuy3,
     PumpfunammSell3,
-    Goonfi,
-    MoonitBuy,
-    MoonitSell,
-    RaydiumSwapV2,
-    Whalestreet,
-    #[strum(to_string = "SugarMoneyBuy")]
-    SugarMoneyBuy {
-        bonding_curve_bump: u8,
-        bonding_curve_sol_associated_account_bump: u8,
-    },
-    #[strum(to_string = "SugarMoneySell")]
-    SugarMoneySell {
-        bonding_curve_bump: u8,
-        bonding_curve_sol_associated_account_bump: u8,
-    },
-    MeteoraDAMMV2Swap2,
-    AlphaQ,
-    FutarchyAmm,
-    PumpfunSell2,
+    // Goonfi,
+    // MoonitBuy,
+    // MoonitSell,
+    // RaydiumSwapV2,
+    // Whalestreet,
+    // #[strum(to_string = "SugarMoneyBuy")]
+    // SugarMoneyBuy {
+    //     bonding_curve_bump: u8,
+    //     bonding_curve_sol_associated_account_bump: u8,
+    // },
+    // #[strum(to_string = "SugarMoneySell")]
+    // SugarMoneySell {
+    //     bonding_curve_bump: u8,
+    //     bonding_curve_sol_associated_account_bump: u8,
+    // },
+    MeteoraDAMMV2Swap2, // Meteora DAMM V2 Swap2
+    // AlphaQ,
+    // FutarchyAmm,
+    // PumpfunSell2,
+    // ========== END DISABLED DEXes ==========
 }
 
 #[derive(Debug)]
@@ -590,205 +593,207 @@ fn distribute_swap<'a>(
     payer: Option<&AccountInfo<'a>>,
 ) -> Result<u64> {
     let swap_function = match dex {
-        Dex::SplTokenSwap => spl_token_swap::swap,
-        Dex::StableSwap => stable_swap::swap,
-        Dex::Whirlpool => whirlpool::swap,
-        Dex::MeteoraDynamicpool => meteora::swap,
-        Dex::RaydiumSwap => raydium::swap,
-        Dex::RaydiumStableSwap => raydium::swap_stable,
-        Dex::RaydiumClmmSwap => raydium::swap_clmm,
-        Dex::RaydiumClmmSwapV2 => raydium::swap_clmm_v2,
-        Dex::AldrinExchangeV1 => aldrin::swap_v1,
-        Dex::AldrinExchangeV2 => aldrin::swap_v2,
-        Dex::LifinityV1 => lifinity::swap_v1,
-        Dex::LifinityV2 => lifinity::swap_v2,
-        Dex::FluxBeam => fluxbeam::swap,
-        Dex::MeteoraDlmm => meteora::dlmm_swap,
-        Dex::RaydiumCpmmSwap => raydium::swap_cpmm,
-        Dex::OpenBookV2 => openbookv2::place_take_order,
-        Dex::WhirlpoolV2 => whirlpool::swap_v2,
-        Dex::Phoenix => phoenix::swap,
-        Dex::ObricV2 => obric_v2::swap,
-        Dex::SanctumAddLiq => sanctum::add_liquidity_handler,
-        Dex::SanctumRemoveLiq => sanctum::remove_liquidity_handler,
-        Dex::SanctumNonWsolSwap => sanctum::swap_without_wsol_handler,
-        Dex::SanctumWsolSwap => sanctum::swap_with_wsol_handler,
-        Dex::PumpfunBuy => pumpfun::buy,
-        Dex::PumpfunSell => pumpfun::sell,
-        Dex::Saros => saros::swap,
-        Dex::StabbleSwap => stabble::swap,
-        Dex::SanctumRouter => {
-            return sanctum_router::sanctum_router_handler(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                order_id,
-                owner_seeds,
-            );
-        }
-        Dex::MeteoraVaultDeposit => meteora::deposit,
-        Dex::MeteoraVaultWithdraw => meteora::withdraw,
-        Dex::MeteoraLst => meteora::swap_lst,
-        Dex::Solfi => solfi::swap,
-        Dex::QualiaSwap => qualia::swap,
-        Dex::Zerofi => zerofi::swap,
+        // ========== DISABLED DEXes - Commented out to reduce program size ==========
+        // Uncomment these when you need to add them back
+        // Dex::SplTokenSwap => spl_token_swap::swap,
+        // Dex::StableSwap => stable_swap::swap,
+        // Dex::Whirlpool => whirlpool::swap,
+        Dex::MeteoraDynamicpool => meteora::swap, // Meteora DAMM V1
+        Dex::RaydiumSwap => raydium::swap,        // Raydium AMM
+        // Dex::RaydiumStableSwap => raydium::swap_stable,
+        Dex::RaydiumClmmSwap => raydium::swap_clmm,    // Raydium CLMM
+        Dex::RaydiumClmmSwapV2 => raydium::swap_clmm_v2, // Raydium CLMM V2
+        // Dex::AldrinExchangeV1 => aldrin::swap_v1,
+        // Dex::AldrinExchangeV2 => aldrin::swap_v2,
+        // Dex::LifinityV1 => lifinity::swap_v1,
+        // Dex::LifinityV2 => lifinity::swap_v2,
+        // Dex::FluxBeam => fluxbeam::swap,
+        Dex::MeteoraDlmm => meteora::dlmm_swap,        // Meteora DLMM
+        Dex::RaydiumCpmmSwap => raydium::swap_cpmm,    // Raydium CPMM
+        // Dex::OpenBookV2 => openbookv2::place_take_order,
+        // Dex::WhirlpoolV2 => whirlpool::swap_v2,
+        // Dex::Phoenix => phoenix::swap,
+        // Dex::ObricV2 => obric_v2::swap,
+        // Dex::SanctumAddLiq => sanctum::add_liquidity_handler,
+        // Dex::SanctumRemoveLiq => sanctum::remove_liquidity_handler,
+        // Dex::SanctumNonWsolSwap => sanctum::swap_without_wsol_handler,
+        // Dex::SanctumWsolSwap => sanctum::swap_with_wsol_handler,
+        // Dex::PumpfunBuy => pumpfun::buy,
+        // Dex::PumpfunSell => pumpfun::sell,
+        // Dex::Saros => saros::swap,
+        // Dex::StabbleSwap => stabble::swap,
+        // Dex::SanctumRouter => {
+        //     return sanctum_router::sanctum_router_handler(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         order_id,
+        //         owner_seeds,
+        //     );
+        // }
+        // Dex::MeteoraVaultDeposit => meteora::deposit,
+        // Dex::MeteoraVaultWithdraw => meteora::withdraw,
+        // Dex::MeteoraLst => meteora::swap_lst,
+        // Dex::Solfi => solfi::swap,
+        // Dex::QualiaSwap => qualia::swap,
+        // Dex::Zerofi => zerofi::swap,
         Dex::PumpfunammBuy => pumpfunamm::buy,
         Dex::PumpfunammSell => pumpfunamm::sell,
-        Dex::Virtuals => virtuals::swap,
-        Dex::VertigoBuy => vertigo::buy,
-        Dex::VertigoSell => vertigo::sell,
-        Dex::PerpetualsAddLiq => {
-            return perpetuals::liquidity_handler(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                true,
-                owner_seeds,
-            );
-        }
-        Dex::PerpetualsRemoveLiq => {
-            return perpetuals::liquidity_handler(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                false,
-                owner_seeds,
-            );
-        }
-        Dex::PerpetualsSwap => perpetuals::perpetuals_swap_handler,
-        Dex::RaydiumLaunchpad => {
-            return raydium_launchpad::launchpad_handler(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                "RaydiumLaunchpad",
-            );
-        }
-        Dex::LetsBonkFun => {
-            return raydium_launchpad::launchpad_handler(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                "LetsBonkFun",
-            );
-        }
-        Dex::Woofi => woofi::swap,
-        Dex::MeteoraDbc => meteora_dbc::swap,
-        Dex::MeteoraDlmmSwap2 => meteora::dlmm_swap2,
-        Dex::MeteoraDAMMV2 => meteora::damm_v2_swap,
-        Dex::Gavel => gavel::swap,
-        Dex::BoopfunBuy => {
-            return boopfun::buy(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                payer,
-            );
-        }
-        Dex::BoopfunSell => boopfun::sell,
-        Dex::MeteoraDbc2 => meteora_dbc::swap2,
-        Dex::GooseFX => goosefx::swap,
-        Dex::Dooar => dooar::swap,
-        Dex::Numeraire => numeraire::swap,
-        Dex::SaberDecimalWrapperDeposit => saber_decimal_wrapper::deposit,
-        Dex::SaberDecimalWrapperWithdraw => saber_decimal_wrapper::withdraw,
-        Dex::SarosDlmm => saros::dlmm_swap,
-        Dex::OneDexSwap => one_dex::swap,
-        Dex::Manifest => manifest::swap,
-        Dex::ByrealClmm => byreal_clmm::swap_v2,
-        Dex::PancakeSwapV3Swap => pancake_swap_v3::swap,
-        Dex::PancakeSwapV3SwapV2 => pancake_swap_v3::swap_v2,
-        Dex::Tessera => tessera::swap,
-        Dex::SolRfq {
-            rfq_id,
-            expected_maker_amount,
-            expected_taker_amount,
-            maker_send_amount,
-            taker_send_amount,
-            expiry,
-            maker_use_native_sol,
-            taker_use_native_sol,
-        } => {
-            return sol_rfq::fill_order(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                *rfq_id,
-                *expected_maker_amount,
-                *expected_taker_amount,
-                *maker_send_amount,
-                *taker_send_amount,
-                *expiry,
-                *maker_use_native_sol,
-                *taker_use_native_sol,
-            );
-        }
-        Dex::PumpfunBuy2 => {
-            return pumpfun::buy2(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                payer,
-            );
-        }
+        // Dex::Virtuals => virtuals::swap,
+        // Dex::VertigoBuy => vertigo::buy,
+        // Dex::VertigoSell => vertigo::sell,
+        // Dex::PerpetualsAddLiq => {
+        //     return perpetuals::liquidity_handler(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         true,
+        //         owner_seeds,
+        //     );
+        // }
+        // Dex::PerpetualsRemoveLiq => {
+        //     return perpetuals::liquidity_handler(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         false,
+        //         owner_seeds,
+        //     );
+        // }
+        // Dex::PerpetualsSwap => perpetuals::perpetuals_swap_handler,
+        // Dex::RaydiumLaunchpad => {
+        //     return raydium_launchpad::launchpad_handler(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         "RaydiumLaunchpad",
+        //     );
+        // }
+        // Dex::LetsBonkFun => {
+        //     return raydium_launchpad::launchpad_handler(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         "LetsBonkFun",
+        //     );
+        // }
+        // Dex::Woofi => woofi::swap,
+        // Dex::MeteoraDbc => meteora_dbc::swap,
+        Dex::MeteoraDlmmSwap2 => meteora::dlmm_swap2,   // Meteora DLMM Swap2
+        Dex::MeteoraDAMMV2 => meteora::damm_v2_swap,    // Meteora DAMM V2
+        // Dex::Gavel => gavel::swap,
+        // Dex::BoopfunBuy => {
+        //     return boopfun::buy(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         payer,
+        //     );
+        // }
+        // Dex::BoopfunSell => boopfun::sell,
+        // Dex::MeteoraDbc2 => meteora_dbc::swap2,
+        // Dex::GooseFX => goosefx::swap,
+        // Dex::Dooar => dooar::swap,
+        // Dex::Numeraire => numeraire::swap,
+        // Dex::SaberDecimalWrapperDeposit => saber_decimal_wrapper::deposit,
+        // Dex::SaberDecimalWrapperWithdraw => saber_decimal_wrapper::withdraw,
+        // Dex::SarosDlmm => saros::dlmm_swap,
+        // Dex::OneDexSwap => one_dex::swap,
+        // Dex::Manifest => manifest::swap,
+        // Dex::ByrealClmm => byreal_clmm::swap_v2,
+        // Dex::PancakeSwapV3Swap => pancake_swap_v3::swap,
+        // Dex::PancakeSwapV3SwapV2 => pancake_swap_v3::swap_v2,
+        // Dex::Tessera => tessera::swap,
+        // Dex::SolRfq {
+        //     rfq_id,
+        //     expected_maker_amount,
+        //     expected_taker_amount,
+        //     maker_send_amount,
+        //     taker_send_amount,
+        //     expiry,
+        //     maker_use_native_sol,
+        //     taker_use_native_sol,
+        // } => {
+        //     return sol_rfq::fill_order(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         *rfq_id,
+        //         *expected_maker_amount,
+        //         *expected_taker_amount,
+        //         *maker_send_amount,
+        //         *taker_send_amount,
+        //         *expiry,
+        //         *maker_use_native_sol,
+        //         *taker_use_native_sol,
+        //     );
+        // }
+        // Dex::PumpfunBuy2 => {
+        //     return pumpfun::buy2(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         payer,
+        //     );
+        // }
         Dex::PumpfunammBuy2 => pumpfunamm::buy2,
-        Dex::Humidifi => humidifi::swap,
-        Dex::HeavenBuy => heaven::buy,
-        Dex::HeavenSell => heaven::sell,
-        Dex::SolfiV2 => solfi::swap_v2,
-        Dex::PumpfunBuy3 => {
-            return pumpfun::buy3(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                payer,
-            );
-        }
-        Dex::PumpfunSell3 => {
-            return pumpfun::sell3(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                payer,
-            );
-        }
+        // Dex::Humidifi => humidifi::swap,
+        // Dex::HeavenBuy => heaven::buy,
+        // Dex::HeavenSell => heaven::sell,
+        // Dex::SolfiV2 => solfi::swap_v2,
+        // Dex::PumpfunBuy3 => {
+        //     return pumpfun::buy3(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         payer,
+        //     );
+        // }
+        // Dex::PumpfunSell3 => {
+        //     return pumpfun::sell3(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         payer,
+        //     );
+        // }
         Dex::PumpfunammBuy3 => pumpfunamm::buy3,
         Dex::PumpfunammSell3 => {
             return pumpfunamm::sell3(
@@ -802,64 +807,65 @@ fn distribute_swap<'a>(
                 payer,
             );
         }
-        Dex::Goonfi => goonfi::swap,
-        Dex::MoonitBuy => {
-            return moonit::buy(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                payer,
-            );
-        }
-        Dex::MoonitSell => moonit::sell,
-        Dex::RaydiumSwapV2 => raydium::swap_v2,
-        Dex::Whalestreet => whalestreet::swap,
-        Dex::SugarMoneyBuy { bonding_curve_bump, bonding_curve_sol_associated_account_bump } => {
-            return sugar_money::buy(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                payer,
-                *bonding_curve_bump,
-                *bonding_curve_sol_associated_account_bump,
-            );
-        }
-        Dex::SugarMoneySell { bonding_curve_bump, bonding_curve_sol_associated_account_bump } => {
-            return sugar_money::sell(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                *bonding_curve_bump,
-                *bonding_curve_sol_associated_account_bump,
-            );
-        }
-        Dex::MeteoraDAMMV2Swap2 => meteora::damm_v2_swap2,
-        Dex::AlphaQ => alphaq::swap,
-        Dex::FutarchyAmm => futarchy::swap,
-        Dex::PumpfunSell2 => {
-            return pumpfun::sell2(
-                remaining_accounts,
-                amount_in,
-                offset,
-                hop_accounts,
-                hop,
-                proxy_from,
-                owner_seeds,
-                payer,
-            );
-        }
+        // Dex::Goonfi => goonfi::swap,
+        // Dex::MoonitBuy => {
+        //     return moonit::buy(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         payer,
+        //     );
+        // }
+        // Dex::MoonitSell => moonit::sell,
+        // Dex::RaydiumSwapV2 => raydium::swap_v2,
+        // Dex::Whalestreet => whalestreet::swap,
+        // Dex::SugarMoneyBuy { bonding_curve_bump, bonding_curve_sol_associated_account_bump } => {
+        //     return sugar_money::buy(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         payer,
+        //         *bonding_curve_bump,
+        //         *bonding_curve_sol_associated_account_bump,
+        //     );
+        // }
+        // Dex::SugarMoneySell { bonding_curve_bump, bonding_curve_sol_associated_account_bump } => {
+        //     return sugar_money::sell(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         *bonding_curve_bump,
+        //         *bonding_curve_sol_associated_account_bump,
+        //     );
+        // }
+        Dex::MeteoraDAMMV2Swap2 => meteora::damm_v2_swap2, // Meteora DAMM V2 Swap2
+        // Dex::AlphaQ => alphaq::swap,
+        // Dex::FutarchyAmm => futarchy::swap,
+        // Dex::PumpfunSell2 => {
+        //     return pumpfun::sell2(
+        //         remaining_accounts,
+        //         amount_in,
+        //         offset,
+        //         hop_accounts,
+        //         hop,
+        //         proxy_from,
+        //         owner_seeds,
+        //         payer,
+        //     );
+        // }
+        // ========== END DISABLED DEXes ==========
     };
     swap_function(remaining_accounts, amount_in, offset, hop_accounts, hop, proxy_from, owner_seeds)
 }
