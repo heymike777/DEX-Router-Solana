@@ -15,16 +15,16 @@ pub enum Dex {
     // StableSwap,
     // Whirlpool,
     MeteoraDynamicpool, // Meteora DAMM V1
-    RaydiumSwap,        // Raydium AMM
+    // RaydiumSwap,        // Raydium AMM
     // RaydiumStableSwap,
-    RaydiumClmmSwap,    // Raydium CLMM
+    // RaydiumClmmSwap,    // Raydium CLMM
     // AldrinExchangeV1,
     // AldrinExchangeV2,
     // LifinityV1,
     // LifinityV2,
     RaydiumClmmSwapV2,  // Raydium CLMM V2
     // FluxBeam,
-    MeteoraDlmm,        // Meteora DLMM
+    // MeteoraDlmm,        // Meteora DLMM
     RaydiumCpmmSwap,    // Raydium CPMM
     // OpenBookV2,
     // WhirlpoolV2,
@@ -45,8 +45,8 @@ pub enum Dex {
     // Solfi,
     // QualiaSwap,
     // Zerofi,
-    PumpfunammBuy,
-    PumpfunammSell,
+    // PumpfunammBuy,
+    // PumpfunammSell,
     // Virtuals,
     // VertigoBuy,
     // VertigoSell,
@@ -58,7 +58,7 @@ pub enum Dex {
     // Woofi,
     // MeteoraDbc,
     MeteoraDlmmSwap2,   // Meteora DLMM Swap2
-    MeteoraDAMMV2,      // Meteora DAMM V2
+    // MeteoraDAMMV2,      // Meteora DAMM V2
     // Gavel,
     // BoopfunBuy,
     // BoopfunSell,
@@ -87,7 +87,7 @@ pub enum Dex {
     //     taker_use_native_sol: bool,
     // },
     // PumpfunBuy2,
-    PumpfunammBuy2,
+    // PumpfunammBuy2,
     // Humidifi,
     // HeavenBuy,
     // HeavenSell,
@@ -99,7 +99,7 @@ pub enum Dex {
     // Goonfi,
     // MoonitBuy,
     // MoonitSell,
-    // RaydiumSwapV2,
+    RaydiumSwapV2,      // Raydium Swap V2
     // Whalestreet,
     // #[strum(to_string = "SugarMoneyBuy")]
     // SugarMoneyBuy {
@@ -604,16 +604,16 @@ fn distribute_swap<'a>(
         // Dex::StableSwap => stable_swap::swap,
         // Dex::Whirlpool => whirlpool::swap,
         Dex::MeteoraDynamicpool => meteora::swap, // Meteora DAMM V1
-        Dex::RaydiumSwap => raydium::swap,        // Raydium AMM
+        // Dex::RaydiumSwap => raydium::swap,        // Raydium AMM
         // Dex::RaydiumStableSwap => raydium::swap_stable,
-        Dex::RaydiumClmmSwap => raydium::swap_clmm,    // Raydium CLMM
+        // Dex::RaydiumClmmSwap => raydium::swap_clmm,    // Raydium CLMM
         Dex::RaydiumClmmSwapV2 => raydium::swap_clmm_v2, // Raydium CLMM V2
         // Dex::AldrinExchangeV1 => aldrin::swap_v1,
         // Dex::AldrinExchangeV2 => aldrin::swap_v2,
         // Dex::LifinityV1 => lifinity::swap_v1,
         // Dex::LifinityV2 => lifinity::swap_v2,
         // Dex::FluxBeam => fluxbeam::swap,
-        Dex::MeteoraDlmm => meteora::dlmm_swap,        // Meteora DLMM
+        // Dex::MeteoraDlmm => meteora::dlmm_swap,        // Meteora DLMM
         Dex::RaydiumCpmmSwap => raydium::swap_cpmm,    // Raydium CPMM
         // Dex::OpenBookV2 => openbookv2::place_take_order,
         // Dex::WhirlpoolV2 => whirlpool::swap_v2,
@@ -645,8 +645,8 @@ fn distribute_swap<'a>(
         // Dex::Solfi => solfi::swap,
         // Dex::QualiaSwap => qualia::swap,
         // Dex::Zerofi => zerofi::swap,
-        Dex::PumpfunammBuy => pumpfunamm::buy,
-        Dex::PumpfunammSell => pumpfunamm::sell,
+        // Dex::PumpfunammBuy => pumpfunamm::buy,
+        // Dex::PumpfunammSell => pumpfunamm::sell,
         // Dex::Virtuals => virtuals::swap,
         // Dex::VertigoBuy => vertigo::buy,
         // Dex::VertigoSell => vertigo::sell,
@@ -702,7 +702,7 @@ fn distribute_swap<'a>(
         // Dex::Woofi => woofi::swap,
         // Dex::MeteoraDbc => meteora_dbc::swap,
         Dex::MeteoraDlmmSwap2 => meteora::dlmm_swap2,   // Meteora DLMM Swap2
-        Dex::MeteoraDAMMV2 => meteora::damm_v2_swap,    // Meteora DAMM V2
+        // Dex::MeteoraDAMMV2 => meteora::damm_v2_swap,    // Meteora DAMM V2
         // Dex::Gavel => gavel::swap,
         // Dex::BoopfunBuy => {
         //     return boopfun::buy(
@@ -770,7 +770,7 @@ fn distribute_swap<'a>(
         //         payer,
         //     );
         // }
-        Dex::PumpfunammBuy2 => pumpfunamm::buy2,
+        // Dex::PumpfunammBuy2 => pumpfunamm::buy2,
         // Dex::Humidifi => humidifi::swap,
         // Dex::HeavenBuy => heaven::buy,
         // Dex::HeavenSell => heaven::sell,
@@ -826,7 +826,7 @@ fn distribute_swap<'a>(
         //     );
         // }
         // Dex::MoonitSell => moonit::sell,
-        // Dex::RaydiumSwapV2 => raydium::swap_v2,
+        Dex::RaydiumSwapV2 => raydium::swap_v2,        // Raydium Swap V2
         // Dex::Whalestreet => whalestreet::swap,
         // Dex::SugarMoneyBuy { bonding_curve_bump, bonding_curve_sol_associated_account_bump } => {
         //     return sugar_money::buy(
