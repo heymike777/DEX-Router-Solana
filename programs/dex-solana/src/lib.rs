@@ -249,4 +249,12 @@ pub mod dex_solana {
     pub fn claim<'a>(ctx: Context<'_, '_, 'a, 'a, ClaimAccounts<'a>>) -> Result<()> {
         instructions::claim_handler(ctx)
     }
+
+    // ******************** Profitability ******************** //
+    pub fn profit_assert<'a>(
+        ctx: Context<'_, '_, 'a, 'a, ProfitAssertAccounts<'a>>,
+        args: ProfitAssertArgs,
+    ) -> Result<()> {
+        instructions::profit_assert_handler(ctx, args)
+    }
 }

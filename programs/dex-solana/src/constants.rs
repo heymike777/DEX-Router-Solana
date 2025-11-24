@@ -27,6 +27,8 @@ pub const TOKEN_ACCOUNT_RENT: u64 = 2039280; // Token account rent (165 bytes)
 pub const MIN_SOL_ACCOUNT_RENT: u64 = 890880;
 pub const SOL_DIFF_LIMIT: u64 = 8_100_000;
 
+pub const PROFIT_SNAPSHOT_SEED: &[u8] = b"profit_snapshot";
+
 // Actual amount_in lower bound ratio for post swap check
 pub const ACTUAL_IN_LOWER_BOUND_NUM: u128 = 95; // 95%
 pub const ACTUAL_IN_LOWER_BOUND_DEN: u128 = 100; // denominator for percentage
