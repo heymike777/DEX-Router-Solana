@@ -238,6 +238,9 @@ pub enum ErrorCode {
 
     #[msg("Transaction is not profitable")]
     UnprofitableTransaction,
+
+    #[msg("This DEX is disabled in this deployment")]
+    DexDisabled,
 }
 
 #[error_code]

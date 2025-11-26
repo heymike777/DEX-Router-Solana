@@ -9,113 +9,110 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Copy, Clone, PartialEq, Eq, Debug, strum::Display)]
 pub enum Dex {
-    // ========== DISABLED DEXes - Commented out to reduce program size ==========
-    // Uncomment these when you need to add them back
-    // SplTokenSwap,
-    // StableSwap,
-    // Whirlpool,
+    SplTokenSwap,
+    StableSwap,
+    Whirlpool,
     MeteoraDynamicpool, // Meteora DAMM V1
-    // RaydiumSwap,        // Raydium AMM
-    // RaydiumStableSwap,
-    // RaydiumClmmSwap,    // Raydium CLMM
-    // AldrinExchangeV1,
-    // AldrinExchangeV2,
-    // LifinityV1,
-    // LifinityV2,
+    RaydiumSwap,        // Raydium AMM
+    RaydiumStableSwap,
+    RaydiumClmmSwap,    // Raydium CLMM
+    AldrinExchangeV1,
+    AldrinExchangeV2,
+    LifinityV1,
+    LifinityV2,
     RaydiumClmmSwapV2,  // Raydium CLMM V2
-    // FluxBeam,
-    // MeteoraDlmm,        // Meteora DLMM
+    FluxBeam,
+    MeteoraDlmm,        // Meteora DLMM
     RaydiumCpmmSwap,    // Raydium CPMM
-    // OpenBookV2,
-    // WhirlpoolV2,
-    // Phoenix,
-    // ObricV2,
-    // SanctumAddLiq,
-    // SanctumRemoveLiq,
-    // SanctumNonWsolSwap,
-    // SanctumWsolSwap,
-    // PumpfunBuy,
-    // PumpfunSell,
-    // StabbleSwap,
-    // SanctumRouter,
-    // MeteoraVaultDeposit,
-    // MeteoraVaultWithdraw,
-    // Saros,
-    // MeteoraLst,
-    // Solfi,
-    // QualiaSwap,
-    // Zerofi,
-    // PumpfunammBuy,
-    // PumpfunammSell,
-    // Virtuals,
-    // VertigoBuy,
-    // VertigoSell,
-    // PerpetualsAddLiq,
-    // PerpetualsRemoveLiq,
-    // PerpetualsSwap,
-    // RaydiumLaunchpad,
-    // LetsBonkFun,
-    // Woofi,
-    // MeteoraDbc,
+    OpenBookV2,
+    WhirlpoolV2,
+    Phoenix,
+    ObricV2,
+    SanctumAddLiq,
+    SanctumRemoveLiq,
+    SanctumNonWsolSwap,
+    SanctumWsolSwap,
+    PumpfunBuy,
+    PumpfunSell,
+    StabbleSwap,
+    SanctumRouter,
+    MeteoraVaultDeposit,
+    MeteoraVaultWithdraw,
+    Saros,
+    MeteoraLst,
+    Solfi,
+    QualiaSwap,
+    Zerofi,
+    PumpfunammBuy,
+    PumpfunammSell,
+    Virtuals,
+    VertigoBuy,
+    VertigoSell,
+    PerpetualsAddLiq,
+    PerpetualsRemoveLiq,
+    PerpetualsSwap,
+    RaydiumLaunchpad,
+    LetsBonkFun,
+    Woofi,
+    MeteoraDbc,
     MeteoraDlmmSwap2,   // Meteora DLMM Swap2
-    // MeteoraDAMMV2,      // Meteora DAMM V2
-    // Gavel,
-    // BoopfunBuy,
-    // BoopfunSell,
-    // MeteoraDbc2,
-    // GooseFX,
-    // Dooar,
-    // Numeraire,
-    // SaberDecimalWrapperDeposit,
-    // SaberDecimalWrapperWithdraw,
-    // SarosDlmm,
-    // OneDexSwap,
-    // Manifest,
-    // ByrealClmm,
-    // PancakeSwapV3Swap,
-    // PancakeSwapV3SwapV2,
-    // Tessera,
-    // #[strum(to_string = "SolRfq")]
-    // SolRfq {
-    //     rfq_id: u64,
-    //     expected_maker_amount: u64,
-    //     expected_taker_amount: u64,
-    //     maker_send_amount: u64,
-    //     taker_send_amount: u64,
-    //     expiry: u64,
-    //     maker_use_native_sol: bool,
-    //     taker_use_native_sol: bool,
-    // },
-    // PumpfunBuy2,
-    // PumpfunammBuy2,
-    // Humidifi,
-    // HeavenBuy,
-    // HeavenSell,
-    // SolfiV2,
-    // PumpfunBuy3,
-    // PumpfunSell3,
+    MeteoraDAMMV2,      // Meteora DAMM V2
+    Gavel,
+    BoopfunBuy,
+    BoopfunSell,
+    MeteoraDbc2,
+    GooseFX,
+    Dooar,
+    Numeraire,
+    SaberDecimalWrapperDeposit,
+    SaberDecimalWrapperWithdraw,
+    SarosDlmm,
+    OneDexSwap,
+    Manifest,
+    ByrealClmm,
+    PancakeSwapV3Swap,
+    PancakeSwapV3SwapV2,
+    Tessera,
+    #[strum(to_string = "SolRfq")]
+    SolRfq {
+        rfq_id: u64,
+        expected_maker_amount: u64,
+        expected_taker_amount: u64,
+        maker_send_amount: u64,
+        taker_send_amount: u64,
+        expiry: u64,
+        maker_use_native_sol: bool,
+        taker_use_native_sol: bool,
+    },
+    PumpfunBuy2,
+    PumpfunammBuy2,
+    Humidifi,
+    HeavenBuy,
+    HeavenSell,
+    SolfiV2,
+    PumpfunBuy3,
+    PumpfunSell3,
     PumpfunammBuy3,
     PumpfunammSell3,
-    // Goonfi,
-    // MoonitBuy,
-    // MoonitSell,
+    Goonfi,
+    MoonitBuy,
+    MoonitSell,
     RaydiumSwapV2,      // Raydium Swap V2
-    // Whalestreet,
-    // #[strum(to_string = "SugarMoneyBuy")]
-    // SugarMoneyBuy {
-    //     bonding_curve_bump: u8,
-    //     bonding_curve_sol_associated_account_bump: u8,
-    // },
-    // #[strum(to_string = "SugarMoneySell")]
-    // SugarMoneySell {
-    //     bonding_curve_bump: u8,
-    //     bonding_curve_sol_associated_account_bump: u8,
-    // },
+    Whalestreet,
+    #[strum(to_string = "SugarMoneyBuy")]
+    SugarMoneyBuy {
+        bonding_curve_bump: u8,
+        bonding_curve_sol_associated_account_bump: u8,
+    },
+    #[strum(to_string = "SugarMoneySell")]
+    SugarMoneySell {
+        bonding_curve_bump: u8,
+        bonding_curve_sol_associated_account_bump: u8,
+    },
     MeteoraDAMMV2Swap2, // Meteora DAMM V2 Swap2
-    // AlphaQ,
-    // FutarchyAmm,
-    // PumpfunSell2,
-    // ========== END DISABLED DEXes ==========
+    AlphaQ,
+    FutarchyAmm,
+    PumpfunSell2,
 }
 
 #[derive(Debug)]
@@ -871,6 +868,8 @@ fn distribute_swap<'a>(
         //     );
         // }
         // ========== END DISABLED DEXes ==========
+        // Catch-all for all disabled DEX variants - maintains enum compatibility
+        _ => return Err(ErrorCode::DexDisabled.into()),
     };
     swap_function(remaining_accounts, amount_in, offset, hop_accounts, hop, proxy_from, owner_seeds)
 }
