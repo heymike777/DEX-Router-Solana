@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 #[constant]
 pub const SEED_SA: &[u8] = b"okx_sa";
 pub const SEED_TEMP_WSOL: &[u8] = b"temp_wsol";
-pub const BUMP_SA: u8 = 251;
+pub const BUMP_SA: u8 = 250;
 
 pub const COMMISSION_RATE_LIMIT: u16 = 1_000; // 10%
 pub const COMMISSION_DENOMINATOR: u64 = 10_000;
@@ -116,7 +116,7 @@ pub mod authority_pda {
 #[cfg(not(feature = "staging"))]
 pub mod authority_pda {
     use anchor_lang::declare_id;
-    declare_id!("HV1KXxWFaSeriyFvXyx48FqG9BoFbfinB8njCJonqP7K");
+    declare_id!("8Me4EBThmh1YoPicWzEH7YX5NkV6ACULfTJDw3b3rbnL");
 }
 
 #[cfg(feature = "staging")]
