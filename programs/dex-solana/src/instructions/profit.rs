@@ -47,6 +47,11 @@ pub fn profit_assert_handler<'a>(
 ) -> Result<()> {
     // Mark constant as used to satisfy compiler when referenced in attribute macros
     let _ = PROFIT_SNAPSHOT_SEED;
+    
+    // Log which wallet is being checked
+    msg!("=== Profit Assert - Wallet Check ===");
+    msg!("Checking profit for payer wallet: {}", ctx.accounts.payer.key());
+    
     let after = snapshot_wallet_balances(
         &ctx.accounts.payer,
         &mut ctx.accounts.payer_wsol_token_account,
