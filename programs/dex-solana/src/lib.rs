@@ -22,7 +22,7 @@ pub use processor::*;
 declare_id!("preZmu827KVPCoQ4LYwSoec13x6seQrKA3QpjgDtx1R");
 
 #[cfg(not(feature = "staging"))]
-declare_id!("6m2CDdhRgxpH4WjvdzxAYbGxwdGUz5MziiL5jek2kBma");
+declare_id!("HEY7KG31shGdigFBq2ZztuicpVXqrvzemmCS6knEJDHH");
 
 #[program]
 pub mod dex_solana {
