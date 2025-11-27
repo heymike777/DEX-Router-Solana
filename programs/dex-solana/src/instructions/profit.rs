@@ -3,7 +3,14 @@ use anchor_lang::prelude::InterfaceAccount;
 use anchor_lang::solana_program::sysvar::instructions::ID as INSTRUCTIONS_SYSVAR_ID;
 use anchor_spl::token_interface::TokenAccount;
 use crate::error::ErrorCode;
-use crate::utils::{snapshot_wallet_balances, compute_profit_lamports, WalletSnapshot};
+use crate::utils::{
+    compute_profit_lamports, 
+    WalletSnapshot,
+    snapshot_wallet_balances_from_account_info,
+    find_token_accounts_from_remaining,
+    find_profit_snapshot_pda_from_remaining,
+    read_profit_snapshot_from_account_info,
+};
 use crate::constants::{PROFIT_SNAPSHOT_SEED, SIGNATURE_FEE, DEFAULT_COMPUTE_UNIT_LIMIT, compute_budget_program};
 use crate::state::profit_snapshot::ProfitSnapshot;
 
@@ -11,21 +18,10 @@ use crate::state::profit_snapshot::ProfitSnapshot;
 pub struct ProfitAssertAccounts<'info> {
     /// The wallet whose profitability we are checking
     pub payer: Signer<'info>,
-    /// Optional WSOL token account of the payer (So111... mint)
+    /// Optional PDA snapshot created earlier (e.g., by swap), contains "before" balances
+    /// CHECK: Can be found from remaining_accounts if not provided. Will be closed to payer after reading (rent refunded)
     #[account(mut)]
-    pub payer_wsol_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
-    /// Optional USDC token account of the payer (EPjF... mint)
-    #[account(mut)]
-    pub payer_usdc_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
-    /// Required PDA snapshot created earlier (e.g., by swap), contains "before" balances
-    /// Will be closed to payer after reading (rent refunded)
-    #[account(
-        mut,
-        seeds = [PROFIT_SNAPSHOT_SEED, payer.key().as_ref()],
-        bump,
-        close = payer
-    )]
-    pub profit_snapshot: Account<'info, ProfitSnapshot>,
+    pub profit_snapshot: Option<UncheckedAccount<'info>>,
     /// CHECK: Solana Instructions Sysvar for reading compute budget instructions
     #[account(address = INSTRUCTIONS_SYSVAR_ID)]
     pub instructions_sysvar: UncheckedAccount<'info>,
@@ -45,19 +41,90 @@ pub fn profit_assert_handler<'a>(
     msg!("=== Profit Assert - Wallet Check ===");
     msg!("Checking profit for payer wallet: {}", ctx.accounts.payer.key());
     
-    // Read "after" balances on-chain
-    let after = snapshot_wallet_balances(
-        &ctx.accounts.payer,
-        &mut ctx.accounts.payer_wsol_token_account,
-        &mut ctx.accounts.payer_usdc_token_account,
+    // Debug: Check if snapshot account is provided
+    msg!("profit_snapshot provided in struct: {}", ctx.accounts.profit_snapshot.is_some());
+    if let Some(ref snapshot) = ctx.accounts.profit_snapshot {
+        msg!("Snapshot account from struct: {}", snapshot.key());
+    }
+    msg!("Number of remaining_accounts: {}", ctx.remaining_accounts.len());
+    
+    // Find token accounts from remaining_accounts (they're always optional)
+    let (wsol_account_info, usdc_account_info) = find_token_accounts_from_remaining(
+        ctx.accounts.payer.key,
+        ctx.remaining_accounts,
     );
     
-    // Read "before" balances from snapshot PDA (required)
-    let before = WalletSnapshot {
-        sol_lamports: ctx.accounts.profit_snapshot.sol_lamports,
-        wsol_amount: ctx.accounts.profit_snapshot.wsol_amount,
-        usdc_amount: ctx.accounts.profit_snapshot.usdc_amount,
+    // Read "after" balances on-chain (handles uninitialized accounts gracefully)
+    let after = snapshot_wallet_balances_from_account_info(
+        &ctx.accounts.payer.to_account_info(),
+        wsol_account_info.as_ref(),
+        usdc_account_info.as_ref(),
+    );
+    
+    // Find profit snapshot PDA from remaining_accounts if not provided in struct
+    let snapshot_account_info = if let Some(ref snapshot) = ctx.accounts.profit_snapshot {
+        msg!("Using snapshot account from struct: {}", snapshot.key());
+        Some(snapshot.to_account_info())
+    } else {
+        msg!("Snapshot not in struct, searching remaining_accounts...");
+        find_profit_snapshot_pda_from_remaining(
+            ctx.program_id,
+            ctx.accounts.payer.key,
+            ctx.remaining_accounts,
+        ).map(|(account_info, _bump)| {
+            msg!("Found snapshot in remaining_accounts: {}", account_info.key());
+            account_info
+        })
     };
+    
+    // Read "before" balances from snapshot PDA
+    let snapshot_data = snapshot_account_info
+        .ok_or_else(|| {
+            msg!("ERROR: Snapshot account not found in struct or remaining_accounts!");
+            anchor_lang::error::ErrorCode::AccountNotEnoughKeys
+        })?;
+    
+    msg!("About to read snapshot from account: {}", snapshot_data.key());
+    
+    // Try to read snapshot, and if not initialized, use zero balances as fallback
+    let before = match read_profit_snapshot_from_account_info(&snapshot_data, ctx.program_id) {
+        Ok(snapshot) => {
+            msg!("Snapshot found and initialized - using stored 'before' balances");
+            WalletSnapshot {
+                sol_lamports: snapshot.sol_lamports,
+                wsol_amount: snapshot.wsol_amount,
+                usdc_amount: snapshot.usdc_amount,
+            }
+        }
+        Err(e) => {
+            // Check if error is because account is not initialized
+            if snapshot_data.data_len() == 0 {
+                msg!("WARNING: Snapshot account is not initialized!");
+                msg!("This means the swap instruction didn't capture 'before' balances.");
+                msg!("Falling back to using zero balances as baseline (checking if final balance > 0).");
+                msg!("For accurate profit checking, ensure swap instruction includes snapshot PDA and system_program in remaining_accounts.");
+                WalletSnapshot {
+                    sol_lamports: 0,
+                    wsol_amount: 0,
+                    usdc_amount: 0,
+                }
+            } else {
+                // Some other error - fail
+                return Err(e);
+            }
+        }
+    };
+    
+    // Close the snapshot account if it's writable (refund rent to payer)
+    if snapshot_data.is_writable {
+        // Transfer lamports from snapshot account back to payer (close account)
+        let rent_to_refund = snapshot_data.lamports();
+        **snapshot_data.lamports.borrow_mut() = 0;
+        **ctx.accounts.payer.lamports.borrow_mut() = ctx.accounts.payer
+            .lamports()
+            .checked_add(rent_to_refund)
+            .ok_or(ErrorCode::CalculationError)?;
+    }
     // Log before snapshot values
     msg!("=== Profit Assert - Before Snapshot ===");
     msg!("before_sol_lamports: {}", before.sol_lamports);
