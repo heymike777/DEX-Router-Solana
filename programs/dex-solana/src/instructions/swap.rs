@@ -1,10 +1,9 @@
 use crate::SwapArgs;
 use crate::common_swap;
 use crate::processor::swap_processor::SwapProcessor;
-use crate::constants::PROFIT_SNAPSHOT_SEED;
 use crate::state::profit_snapshot::ProfitSnapshot;
+use crate::utils::{find_token_accounts_from_remaining, find_profit_snapshot_pda_from_remaining, snapshot_wallet_balances_from_account_info};
 use anchor_lang::prelude::*;
-use anchor_lang::system_program::System;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 #[derive(Accounts)]
@@ -28,25 +27,6 @@ pub struct SwapAccounts<'info> {
     pub source_mint: InterfaceAccount<'info, Mint>,
 
     pub destination_mint: InterfaceAccount<'info, Mint>,
-
-    // Optional: payer's WSOL and USDC token accounts for profitability check
-    // If provided, they must belong to the payer; otherwise treated as zero balances
-    #[account(mut)]
-    pub payer_wsol_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
-    #[account(mut)]
-    pub payer_usdc_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
-
-    // PDA to store the "before" snapshot for end-of-tx profitability assertion
-    #[account(
-        init_if_needed,
-        payer = payer,
-        space = 8 + ProfitSnapshot::SIZE,
-        seeds = [PROFIT_SNAPSHOT_SEED, payer.key().as_ref()],
-        bump
-    )]
-    pub profit_snapshot: Account<'info, ProfitSnapshot>,
-
-    pub system_program: Program<'info, System>,
 }
 
 pub fn swap_handler<'a>(
@@ -54,19 +34,41 @@ pub fn swap_handler<'a>(
     args: SwapArgs,
     order_id: u64,
 ) -> Result<()> {
-    // Mark constant as used to satisfy compiler when referenced in attribute macros
-    let _ = PROFIT_SNAPSHOT_SEED;
-    // Snapshot before balances (SOL/WSOL/USDC)
-    let before_snapshot = crate::utils::snapshot_wallet_balances(
-        &ctx.accounts.payer,
-        &mut ctx.accounts.payer_wsol_token_account,
-        &mut ctx.accounts.payer_usdc_token_account,
+    // Automatically find WSOL/USDC token accounts from remaining_accounts if present
+    let (wsol_account_info, usdc_account_info) = find_token_accounts_from_remaining(
+        ctx.accounts.payer.key,
+        ctx.remaining_accounts,
     );
 
-    // Persist to PDA for later assertion
-    ctx.accounts.profit_snapshot.sol_lamports = before_snapshot.sol_lamports;
-    ctx.accounts.profit_snapshot.wsol_amount = before_snapshot.wsol_amount;
-    ctx.accounts.profit_snapshot.usdc_amount = before_snapshot.usdc_amount;
+    // Automatically find profit_snapshot PDA from remaining_accounts if present
+    if let Some(snapshot_account_info) = find_profit_snapshot_pda_from_remaining(
+        ctx.program_id,
+        ctx.accounts.payer.key,
+        ctx.remaining_accounts,
+    ) {
+        // Check if account is writable and has correct size
+        if snapshot_account_info.is_writable && snapshot_account_info.data_len() >= 8 + ProfitSnapshot::SIZE {
+            // Try to write to the account if it's already initialized
+            if let Ok(mut snapshot_data) = snapshot_account_info.try_borrow_mut_data() {
+                // Check if account is initialized (has discriminator)
+                // Anchor accounts have an 8-byte discriminator at the start
+                let min_data_size = 8 + ProfitSnapshot::SIZE;
+                if snapshot_data.len() >= min_data_size {
+                    // Create "before" snapshot
+                    let before = snapshot_wallet_balances_from_account_info(
+                        &ctx.accounts.payer.to_account_info(),
+                        wsol_account_info.as_ref(),
+                        usdc_account_info.as_ref(),
+                    );
+
+                    // Write snapshot data (skip 8-byte discriminator)
+                    snapshot_data[8..16].copy_from_slice(&before.sol_lamports.to_le_bytes());
+                    snapshot_data[16..24].copy_from_slice(&before.wsol_amount.to_le_bytes());
+                    snapshot_data[24..32].copy_from_slice(&before.usdc_amount.to_le_bytes());
+                }
+            }
+        }
+    }
 
     common_swap(
         &SwapProcessor,

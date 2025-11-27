@@ -590,7 +590,7 @@ fn distribute_swap<'a>(
     hop_accounts: &mut HopAccounts,
     hop: usize,
     proxy_from: bool,
-    order_id: u64,
+    _order_id: u64,
     owner_seeds: Option<&[&[&[u8]]]>,
     payer: Option<&AccountInfo<'a>>,
 ) -> Result<u64> {
