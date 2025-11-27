@@ -11,7 +11,7 @@ use crate::utils::{
     find_profit_snapshot_pda_from_remaining,
     read_profit_snapshot_from_account_info,
 };
-use crate::constants::{PROFIT_SNAPSHOT_SEED, SIGNATURE_FEE, DEFAULT_COMPUTE_UNIT_LIMIT, compute_budget_program};
+use crate::constants::{PROFIT_SNAPSHOT_SEED, SIGNATURE_FEE, DEFAULT_COMPUTE_UNIT_LIMIT, compute_budget_program, MIN_PROFIT_THRESHOLD};
 use crate::state::profit_snapshot::ProfitSnapshot;
 
 #[derive(Accounts)]
@@ -172,10 +172,16 @@ pub fn profit_assert_handler<'a>(
     msg!("profit_after_fees_lamports: {}", profit_after_fees);
     msg!("profit_after_fees_formula: profit_before_fees - total_transaction_fees");
     msg!("profit_after_fees_calculation: {} - {} = {}", profit, transaction_fees, profit_after_fees);
+    msg!("minimum_profit_threshold: {}", MIN_PROFIT_THRESHOLD);
     
-    require!(profit_after_fees >= 0, ErrorCode::UnprofitableTransaction);
+    // Check if profit meets minimum threshold
+    require!(profit_after_fees >= MIN_PROFIT_THRESHOLD, ErrorCode::UnprofitableTransaction);
     msg!("=== Profit Assert - Result ===");
-    msg!("✅ Transaction is PROFITABLE (profit_after_fees >= 0)");
+    if MIN_PROFIT_THRESHOLD > 0 {
+        msg!("✅ Transaction is PROFITABLE (profit_after_fees {} >= threshold {})", profit_after_fees, MIN_PROFIT_THRESHOLD);
+    } else {
+        msg!("✅ Transaction is PROFITABLE (profit_after_fees {} >= 0)", profit_after_fees);
+    }
     Ok(())
 }
 

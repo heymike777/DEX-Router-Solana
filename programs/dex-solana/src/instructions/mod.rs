@@ -19,6 +19,7 @@ pub mod common_swap;
 pub mod create_token_account;
 pub mod create_token_account_with_seed;
 pub mod profit;
+pub mod create_profit_snapshot;
 pub mod from_swap;
 // ========== DISABLED - Platform Fee V2 (commission + platform fee + trim) ==========
 // Uncomment these when you need platform fee functionality
@@ -54,6 +55,7 @@ pub use common_swap::*;
 pub use create_token_account::*;
 pub use create_token_account_with_seed::*;
 pub use profit::*;
+pub use create_profit_snapshot::*;
 pub use from_swap::*;
 // ========== DISABLED - Platform Fee V2 (commission + platform fee + trim) ==========
 // Uncomment these when you need platform fee functionality

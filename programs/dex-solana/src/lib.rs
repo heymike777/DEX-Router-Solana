@@ -257,6 +257,12 @@ pub mod dex_solana {
     }
 
     // ******************** Profitability ******************** //
+    pub fn create_profit_snapshot<'a>(
+        ctx: Context<'_, '_, 'a, 'a, CreateProfitSnapshotAccounts<'a>>,
+    ) -> Result<()> {
+        instructions::create_profit_snapshot_handler(ctx)
+    }
+    
     pub fn profit_assert<'a>(
         ctx: Context<'_, '_, 'a, 'a, ProfitAssertAccounts<'a>>,
     ) -> Result<()> {

@@ -29,6 +29,10 @@ pub const SOL_DIFF_LIMIT: u64 = 8_100_000;
 
 pub const PROFIT_SNAPSHOT_SEED: &[u8] = b"profit_snapshot";
 
+/// Minimum profit threshold in lamports - transactions must be profitable by at least this amount
+/// Set to 0 to allow any non-negative profit, or increase for a stricter threshold
+pub const MIN_PROFIT_THRESHOLD: i128 = 0;
+
 // Actual amount_in lower bound ratio for post swap check
 pub const ACTUAL_IN_LOWER_BOUND_NUM: u128 = 95; // 95%
 pub const ACTUAL_IN_LOWER_BOUND_DEN: u128 = 100; // denominator for percentage
