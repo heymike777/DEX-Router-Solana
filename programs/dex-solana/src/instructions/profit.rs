@@ -7,13 +7,6 @@ use crate::utils::{snapshot_wallet_balances, compute_profit_lamports, WalletSnap
 use crate::constants::{PROFIT_SNAPSHOT_SEED, SIGNATURE_FEE, DEFAULT_COMPUTE_UNIT_LIMIT, compute_budget_program};
 use crate::state::profit_snapshot::ProfitSnapshot;
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct ProfitAssertArgs {
-    pub before_sol_lamports: u64,
-    pub before_wsol_amount: u64,
-    pub before_usdc_amount: u64,
-}
-
 #[derive(Accounts)]
 pub struct ProfitAssertAccounts<'info> {
     /// The wallet whose profitability we are checking
@@ -24,26 +17,26 @@ pub struct ProfitAssertAccounts<'info> {
     /// Optional USDC token account of the payer (EPjF... mint)
     #[account(mut)]
     pub payer_usdc_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
-    /// Optional PDA snapshot created earlier (e.g., by swap), will be closed to payer if provided
+    /// Required PDA snapshot created earlier (e.g., by swap), contains "before" balances
+    /// Will be closed to payer after reading (rent refunded)
     #[account(
         mut,
         seeds = [PROFIT_SNAPSHOT_SEED, payer.key().as_ref()],
         bump,
         close = payer
     )]
-    pub profit_snapshot: Option<Account<'info, ProfitSnapshot>>,
+    pub profit_snapshot: Account<'info, ProfitSnapshot>,
     /// CHECK: Solana Instructions Sysvar for reading compute budget instructions
     #[account(address = INSTRUCTIONS_SYSVAR_ID)]
     pub instructions_sysvar: UncheckedAccount<'info>,
 }
 
 /// Assert that the entire transaction (up to this final instruction) is profitable for `payer`.
-/// Caller provides the "before" snapshot values as args; the instruction reads the "after" balances on-chain.
-/// Transaction fees (priority fees, compute units, signature fees) are automatically calculated and deducted.
+/// Reads "before" balances from the required profit_snapshot PDA (automatically created by swap).
+/// Transaction fees are automatically calculated and deducted.
 /// This should be used as the LAST instruction in the transaction to include all prior effects (e.g., Jito tips).
 pub fn profit_assert_handler<'a>(
     ctx: Context<'_, '_, 'a, 'a, ProfitAssertAccounts<'a>>,
-    args: ProfitAssertArgs,
 ) -> Result<()> {
     // Mark constant as used to satisfy compiler when referenced in attribute macros
     let _ = PROFIT_SNAPSHOT_SEED;
@@ -52,23 +45,18 @@ pub fn profit_assert_handler<'a>(
     msg!("=== Profit Assert - Wallet Check ===");
     msg!("Checking profit for payer wallet: {}", ctx.accounts.payer.key());
     
+    // Read "after" balances on-chain
     let after = snapshot_wallet_balances(
         &ctx.accounts.payer,
         &mut ctx.accounts.payer_wsol_token_account,
         &mut ctx.accounts.payer_usdc_token_account,
     );
-    let before = if let Some(snapshot) = &ctx.accounts.profit_snapshot {
-        WalletSnapshot {
-            sol_lamports: snapshot.sol_lamports,
-            wsol_amount: snapshot.wsol_amount,
-            usdc_amount: snapshot.usdc_amount,
-        }
-    } else {
-        WalletSnapshot {
-            sol_lamports: args.before_sol_lamports,
-            wsol_amount: args.before_wsol_amount,
-            usdc_amount: args.before_usdc_amount,
-        }
+    
+    // Read "before" balances from snapshot PDA (required)
+    let before = WalletSnapshot {
+        sol_lamports: ctx.accounts.profit_snapshot.sol_lamports,
+        wsol_amount: ctx.accounts.profit_snapshot.wsol_amount,
+        usdc_amount: ctx.accounts.profit_snapshot.usdc_amount,
     };
     // Log before snapshot values
     msg!("=== Profit Assert - Before Snapshot ===");

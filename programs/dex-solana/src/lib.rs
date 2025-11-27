@@ -259,8 +259,7 @@ pub mod dex_solana {
     // ******************** Profitability ******************** //
     pub fn profit_assert<'a>(
         ctx: Context<'_, '_, 'a, 'a, ProfitAssertAccounts<'a>>,
-        args: ProfitAssertArgs,
     ) -> Result<()> {
-        instructions::profit_assert_handler(ctx, args)
+        instructions::profit_assert_handler(ctx)
     }
 }

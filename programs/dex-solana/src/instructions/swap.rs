@@ -2,7 +2,13 @@ use crate::SwapArgs;
 use crate::common_swap;
 use crate::processor::swap_processor::SwapProcessor;
 use crate::state::profit_snapshot::ProfitSnapshot;
-use crate::utils::{find_token_accounts_from_remaining, find_profit_snapshot_pda_from_remaining, snapshot_wallet_balances_from_account_info};
+use crate::utils::{
+    find_token_accounts_from_remaining, 
+    find_profit_snapshot_pda_from_remaining, 
+    snapshot_wallet_balances_from_account_info,
+    init_profit_snapshot_if_needed,
+    find_system_program_from_remaining,
+};
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
@@ -41,17 +47,27 @@ pub fn swap_handler<'a>(
     );
 
     // Automatically find profit_snapshot PDA from remaining_accounts if present
-    if let Some(snapshot_account_info) = find_profit_snapshot_pda_from_remaining(
+    if let Some((snapshot_account_info, bump)) = find_profit_snapshot_pda_from_remaining(
         ctx.program_id,
         ctx.accounts.payer.key,
         ctx.remaining_accounts,
     ) {
-        // Check if account is writable and has correct size
-        if snapshot_account_info.is_writable && snapshot_account_info.data_len() >= 8 + ProfitSnapshot::SIZE {
-            // Try to write to the account if it's already initialized
+        // Check if account is writable
+        if snapshot_account_info.is_writable {
+            // Find system_program for initialization if needed
+            if let Some(system_program_info) = find_system_program_from_remaining(ctx.remaining_accounts) {
+                // Initialize account if not already initialized
+                init_profit_snapshot_if_needed(
+                    &snapshot_account_info,
+                    &ctx.accounts.payer.to_account_info(),
+                    ctx.program_id,
+                    &system_program_info,
+                    bump,
+                )?;
+            }
+
+            // Write snapshot data (account is now guaranteed to be initialized)
             if let Ok(mut snapshot_data) = snapshot_account_info.try_borrow_mut_data() {
-                // Check if account is initialized (has discriminator)
-                // Anchor accounts have an 8-byte discriminator at the start
                 let min_data_size = 8 + ProfitSnapshot::SIZE;
                 if snapshot_data.len() >= min_data_size {
                     // Create "before" snapshot

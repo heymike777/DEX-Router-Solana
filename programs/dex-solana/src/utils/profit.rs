@@ -5,6 +5,7 @@ use anchor_spl::token::spl_token::state::Account as SplTokenAccount;
 use anchor_spl::token_2022::spl_token_2022::state::Account as SplToken2022Account;
 use anchor_spl::token_interface::TokenAccount;
 use crate::{wsol_program, usdc_mint};
+use crate::state::profit_snapshot::ProfitSnapshot;
 
 /// Snapshot of payer's relevant balances
 pub struct WalletSnapshot {
@@ -91,16 +92,16 @@ pub fn find_token_accounts_from_remaining<'info>(
 }
 
 /// Find profit snapshot PDA from remaining_accounts by deriving the PDA address
-/// Returns AccountInfo if found, None otherwise
+/// Returns AccountInfo and bump if found, None otherwise
 pub fn find_profit_snapshot_pda_from_remaining<'info>(
     program_id: &Pubkey,
     payer: &Pubkey,
     remaining_accounts: &'info [AccountInfo<'info>],
-) -> Option<AccountInfo<'info>> {
+) -> Option<(AccountInfo<'info>, u8)> {
     use crate::constants::PROFIT_SNAPSHOT_SEED;
     
     // Derive the PDA address
-    let (pda_address, _bump) = Pubkey::find_program_address(
+    let (pda_address, bump) = Pubkey::find_program_address(
         &[PROFIT_SNAPSHOT_SEED, payer.as_ref()],
         program_id,
     );
@@ -108,10 +109,119 @@ pub fn find_profit_snapshot_pda_from_remaining<'info>(
     // Search through remaining_accounts for matching address
     for account_info in remaining_accounts {
         if account_info.key() == pda_address {
-            return Some(account_info.clone());
+            return Some((account_info.clone(), bump));
         }
     }
 
+    None
+}
+
+/// Initialize profit snapshot PDA if not already initialized
+/// Returns true if account was initialized, false if it was already initialized
+pub fn init_profit_snapshot_if_needed<'info>(
+    snapshot_account: &AccountInfo<'info>,
+    payer: &AccountInfo<'info>,
+    program_id: &Pubkey,
+    system_program: &AccountInfo<'info>,
+    bump: u8,
+) -> Result<bool> {
+    use crate::constants::PROFIT_SNAPSHOT_SEED;
+    use anchor_lang::solana_program::{system_instruction, program::invoke_signed};
+    use anchor_lang::Discriminator;
+    
+    // Check if account is already initialized (has data with discriminator)
+    let required_size = 8 + ProfitSnapshot::SIZE; // 8 bytes discriminator + data
+    
+    // Check if account has correct discriminator
+    if snapshot_account.data_len() >= required_size {
+        if let Ok(data) = snapshot_account.try_borrow_data() {
+            if data.len() >= 8 {
+                let discriminator = ProfitSnapshot::DISCRIMINATOR;
+                if &data[0..8] == &discriminator[..] {
+                    // Account is already initialized
+                    return Ok(false);
+                }
+            }
+        }
+    }
+
+    // Account is not initialized, initialize it
+    let space = required_size as u64;
+    let rent = anchor_lang::solana_program::rent::Rent::get()?;
+    let rent_lamports = rent.minimum_balance(required_size);
+
+    // Create seeds for PDA signing
+    let seeds: &[&[u8]] = &[PROFIT_SNAPSHOT_SEED, payer.key.as_ref(), &[bump]];
+    let signer_seeds: &[&[&[u8]]] = &[seeds];
+
+    use anchor_lang::solana_program::system_program;
+    
+    // Ensure account has enough rent (transfer creates account if it doesn't exist)
+    let current_lamports = snapshot_account.lamports();
+    if current_lamports < rent_lamports {
+        let additional_lamports = rent_lamports - current_lamports;
+        anchor_lang::solana_program::program::invoke(
+            &system_instruction::transfer(payer.key, snapshot_account.key, additional_lamports),
+            &[payer.clone(), snapshot_account.clone(), system_program.clone()],
+        )?;
+    }
+
+    // Refresh account info after transfer (account might have been created)
+    // Check if account needs to be allocated and assigned
+    if snapshot_account.owner == &system_program::id() {
+        // Account exists but is owned by system program - allocate and assign
+        if snapshot_account.data_len() < required_size {
+            let allocate_ix = system_instruction::allocate(snapshot_account.key, space);
+            invoke_signed(
+                &allocate_ix,
+                &[snapshot_account.clone()],
+                signer_seeds,
+            )?;
+        }
+        
+        let assign_ix = system_instruction::assign(snapshot_account.key, program_id);
+        invoke_signed(
+            &assign_ix,
+            &[snapshot_account.clone()],
+            signer_seeds,
+        )?;
+    } else if snapshot_account.owner != program_id {
+        // Account is owned by something else - this shouldn't happen
+        return Err(anchor_lang::error::ErrorCode::ConstraintOwner.into());
+    }
+    
+    // Ensure account has correct size (should always be true after above, but double-check)
+    if snapshot_account.data_len() < required_size {
+        return Err(anchor_lang::error::ErrorCode::AccountNotEnoughKeys.into());
+    }
+
+    // Initialize the account data with discriminator and zero values
+    let mut account_data = snapshot_account.try_borrow_mut_data()?;
+    
+    // Only initialize if discriminator is not set
+    if account_data.len() >= 8 {
+        let discriminator = ProfitSnapshot::DISCRIMINATOR;
+        if &account_data[0..8] != &discriminator[..] {
+            account_data.fill(0); // Initialize all bytes to 0
+            account_data[0..8].copy_from_slice(&discriminator);
+        }
+    }
+
+    Ok(true)
+}
+
+/// Find system_program from remaining_accounts
+pub fn find_system_program_from_remaining<'info>(
+    remaining_accounts: &'info [AccountInfo<'info>],
+) -> Option<AccountInfo<'info>> {
+    use anchor_lang::solana_program::system_program;
+    
+    for account_info in remaining_accounts {
+        if account_info.key() == system_program::id() {
+            return Some(account_info.clone());
+        }
+    }
+    
     None
 }
 
